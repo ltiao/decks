@@ -1,2 +1,9 @@
-# decks
-reveal.js Slide Decks
+---
+title: README
+theme: black
+---
+
+# Slide Decks
+
+This repository contains a collection of my [reveal.js](https://revealjs.com/) 
+slide decks represented as [Markdown](https://daringfireball.net/projects/markdown/syntax) files using [reveal-md](https://github.com/webpro/reveal-md).
