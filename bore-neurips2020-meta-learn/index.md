@@ -3,7 +3,7 @@ title: BORE | NeurIPS2020 Meta-learn Contributed Talk
 theme: serif
 highlightTheme: monokai
 revealOptions:
-    transition: fade
+    transition: slide
     controls: true
     progress: true
 ---
@@ -16,11 +16,73 @@ revealOptions:
 
 ---
 
+## Blackbox optimization
+
+- Input $\mathbf{x}$ the blackbox function $f : \mathcal{X} \to \mathbb{R}$
+- Output $y \sim \mathcal{N}(f(\mathbf{x}), \sigma^2)$ observed with noise variance $\sigma^2$
+
+*Show figure here*
+
+Note:
+- blackbox optimization
+  - derivative-free optimization
+  - global optimization
+- input vector
+- output scalar
+
+---
+
 ## Bayesian Optimization
 
-- $\mathbf{x}$ denote an input to the blackbox function 
-- $y$ its corresponding output value
-- $y = f(\mathbf{x}) + \epsilon$, with noise $\epsilon \sim \mathcal{N}(0, \sigma\^2)$
+<!-- Observations $\mathcal{D}\_N = \\{ (\mathbf{x}\_n, y\_n) \\}\_{n=1}^N$ -->
+
+- Surrogate probabilistic model
+- Acquisition function to balance explore-exploit
+
+----
+
+### Utility function: Improvement 
+
+- Improvement over $\tau$
+$$
+I\_{\gamma}(\mathbf{x}) = \max(\tau - y, 0)
+$$
+- Define threshold $\tau = \Phi^{-1}(\gamma)$ 
+  - where $\gamma$ is some quantile of observed $y$, i.e.
+$$
+\gamma = \Phi(\tau) = p(y < \tau)
+$$
+  - for example, $\gamma=0$ leads to $\tau=\min\_n y\_n$.
+
+Note:
+- non-negative improvement over tau
+
+----
+
+Define $\tau$ and $\gamma$
+
+*Show augmented figure here*
+
+----
+
+## Expected Improvement (EI)
+
+- Posterior predictive
+$$
+p(y | \mathbf{x}, \mathcal{D}\_N)
+$$
+- Expected value of $I\_{\gamma}(\mathbf{x})$ under posterior predictive 
+$$
+\alpha\_{\gamma}(\mathbf{x}; \mathcal{D}\_N) = \mathbb{E}\_{p(y | \mathbf{x}, \mathcal{D}\_N)}[I\_{\gamma}(\mathbf{x})]
+$$
+
+----
+
+Analytical tractability poses limitations
+- scalability
+- stationarity and homeoscedasticity
+- discrete variables, ordered or otherwise (categorical)
+- conditional dependency structures
 
 ---
 
@@ -40,23 +102,6 @@ $$
 - The *ordinary* density ratio
 $$
 r\_{0}(\mathbf{x}) = \frac{\ell(\mathbf{x})}{g(\mathbf{x})}
-$$
-
----
-
-## Expected Improvement (EI)
-
-- Non-negative improvement over $\tau$
-$$
-I\_{\gamma}(\mathbf{x}) = \max(\tau - y, 0)
-$$
-- Posterior predictive
-$$
-p(y | \mathbf{x}, \mathcal{D}\_N)
-$$
-- Expected value of $I\_{\gamma}(\mathbf{x})$ under posterior predictive 
-$$
-\alpha\_{\gamma}(\mathbf{x}; \mathcal{D}\_N) = \mathbb{E}\_{p(y | \mathbf{x}, \mathcal{D}\_N)}[I\_{\gamma}(\mathbf{x})]
 $$
 
 ---
@@ -82,6 +127,46 @@ $$
 $$
 \underbrace{\alpha\_{\gamma}(\mathbf{x}; \mathcal{D}\_N)}\_\text{expected improvement} \propto \underbrace{r\_{\gamma}(\mathbf{x})}\_\text{relative density ratio}
 $$
+
+----
+
+$$
+\begin{align}
+\mathbf{x}\^{\star} 
+&= \color{red}{\operatorname{argmax}\_{\mathbf{x} \in \mathcal{X}}{\alpha\_{\gamma}(\mathbf{x}; \mathcal{D}\_N)}} \newline
+&= \color{green}{\operatorname{argmax}\_{\mathbf{x} \in \mathcal{X}}{r\_{\gamma}(\mathbf{x})}}
+\end{align}
+$$
+
+---
+
+### Tree-structured Parzen Estimator (TPE)
+
+Ignore $\gamma$
+
+$$
+\begin{align}
+\mathbf{x}\^{\star} 
+&= \operatorname{argmax}\_{\mathbf{x} \in \mathcal{X}}{r\_0(\mathbf{x})} \newline
+&= \operatorname{argmax}\_{\mathbf{x} \in \mathcal{X}}{r\_{\gamma}(\mathbf{x})}
+\end{align}
+$$
+
+***
+
+*Singularities.* 
+
+----
+
+Kernel density estimation
+
+***
+
+Vapnik's principle
+
+---
+
+## Class-Probability Estimation (CPE)
 
 ---
 
