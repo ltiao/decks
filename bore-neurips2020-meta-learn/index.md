@@ -18,25 +18,30 @@ revealOptions:
 
 ## Blackbox optimization
 
-- Input $\mathbf{x}$ the blackbox function $f : \mathcal{X} \to \mathbb{R}$
-- Output $y \sim \mathcal{N}(f(\mathbf{x}), \sigma^2)$ observed with noise variance $\sigma^2$
+- Find input $\mathbf{x} \in \mathcal{X}$ that minimizes blackbox function $f : \mathcal{X} \to \mathbb{R}$:
+$$
+\mathbf{x}^{\star} = \operatorname{argmin}\_{\mathbf{x} \in \mathcal{X}}{f(\mathbf{x})}
+$$
 
 *Show figure here*
 
 Note:
 - blackbox optimization
-  - derivative-free optimization
   - global optimization
-- input vector
+  - derivative-free optimization
+- input vector of hyperparameter configuration
 - output scalar
 
 ---
 
 ## Bayesian Optimization
 
-<!-- Observations $\mathcal{D}\_N = \\{ (\mathbf{x}\_n, y\_n) \\}\_{n=1}^N$ -->
-
+- Output $y \sim \mathcal{N}(f(\mathbf{x}), \sigma^2)$ observed with noise variance $\sigma^2$
+- Observations $\mathcal{D}\_N = \\{ (\mathbf{x}\_n, y\_n) \\}\_{n=1}^N$
 - Surrogate probabilistic model
+$$
+p(y | \mathbf{x}, \mathcal{D}\_N)
+$$
 - Acquisition function to balance explore-exploit
 
 ----
@@ -52,7 +57,7 @@ $$
 $$
 \gamma = \Phi(\tau) = p(y < \tau)
 $$
-  - for example, $\gamma=0$ leads to $\tau=\min\_n y\_n$.
+  - for example, $\gamma=0$ leads to $\tau=\min\_n y\_n$
 
 Note:
 - non-negative improvement over tau
@@ -86,7 +91,7 @@ Analytical tractability poses limitations
 
 ---
 
-## Density Ratio
+## Ordinary Density Ratio
 
 $$
 \frac{\ell(\mathbf{x})}{g(\mathbf{x})}
@@ -102,15 +107,17 @@ r\_{\gamma}(\mathbf{x}) = \frac{\ell(\mathbf{x})}{\gamma \ell(\mathbf{x}) + (1 -
 $$
   where $\gamma \ell(\mathbf{x}) + (1 - \gamma) g(\mathbf{x})$ is the $\gamma$-*mixture density* 
   - for some mixing proportion $0 \leq \gamma < 1$
-- For $\gamma = 0$ we get the *ordinary* density ratio
+- For $\gamma = 0$ we recover *ordinary* density ratio
 $$
 r\_0(\mathbf{x}) = \frac{\ell(\mathbf{x})}{g(\mathbf{x})}
 $$
 
 ----
 
-- The relative density ratio $r\_{\gamma}$ as a function of the ordinary
-density ratio $r\_0$
+## Relative and Ordinary Density Ratio
+
+- The relative density ratio $r\_{\gamma}(\mathbf{x})$ as a function of the 
+ordinary density ratio $r\_0(\mathbf{x})$:
 $$
 r_{\gamma}(\mathbf{x}) = ( \gamma + r_0(\mathbf{x})^{-1} (1 - \gamma) )^{-1}
 $$
@@ -121,6 +128,8 @@ $$
 - Let $\ell(\mathbf{x})$ and $g(\mathbf{x})$ be distributions such that
   - $\mathbf{x} \sim \ell(\mathbf{x})$ if $y < \tau$
   - $\mathbf{x} \sim g(\mathbf{x})$ if $y \geq \tau$
+
+*3rd diagram here*
 
 ----
 
@@ -160,10 +169,9 @@ $$
 
 ---
 
-### Tree-structured Parzen Estimator (TPE)
+#### Tree-structured Parzen Estimator (TPE)
 
-Ignore $\gamma$
-
+1. Ignore $\gamma$
 $$
 \begin{align}
 \mathbf{x}\^{\star} 
@@ -174,19 +182,35 @@ $$
 
 ***
 
-*Singularities.* 
+- **Singularities.** 
+$r\_0(\mathbf{x})$ is often undefined. 
+Whereas $r\_{\gamma}(\mathbf{x})$ is always well-defined and bounded above by 
+$\gamma^{-1}$ when $\gamma > 0$ (Yamada et al. 2011)
 
 ----
 
-Kernel density estimation
+#### Tree-structured Parzen Estimator (TPE)
 
-***
+2. Tree-based variant of kernel density estimation (KDE)
+  - separately estimate $\ell(\mathbf{x})$ and $g(\mathbf{x})$
+  - estimate $r\_0(\mathbf{x})$ using the ratio of these estimates  
 
-- *Vapnik's principle*
-- *Kernel bandwidth*
-- *Error sensitivity*
-- *Curse of dimensionality*
-- *Ease of optimization*
+----
+
+- **Vapnik's principle.** "When solving a problem, don't try to solve a more general problem as an intermediate step"
+  - *density* estimation is arguably more general and difficult problem than *density ratio* estimation
+- **Kernel bandwidth.**
+- **Error sensitivity.**
+- **Curse of dimensionality.**
+- **Ease of optimization.**
+
+Note:
+
+Vapnik's principle, paraphrased, suggests to us that when solving a problem of 
+interest, one should refrain from resorting to solve a more general problem as 
+an intermediate step.
+- And in this instance, *density* estimation is a more general problem that is 
+arguably more difficult than *density ratio* estimation.
 
 ---
 
@@ -314,8 +338,8 @@ $$
 
 ## Conclusion
 
-- Simplicity and effectiveness make BORE a promising approach
-- Extensibility offers many exciting avenues for further exploration 
+- **Simplicity** and **effectiveness** makes BORE a promising approach
+- **Extensibility** offers many exciting avenues for further exploration 
 
 Note:
 - BORE is a simple but effective alternative to conventional BO
