@@ -43,7 +43,7 @@ Note:
 
 ### Utility function: Improvement 
 
-- Improvement over $\tau$
+- Improvement over threshold $\tau$
 $$
 I\_{\gamma}(\mathbf{x}) = \max(\tau - y, 0)
 $$
@@ -86,25 +86,43 @@ Analytical tractability poses limitations
 
 ---
 
-## Relative Density Ratio
+## Density Ratio
 
-- The $\gamma$-*relative* density ratio
 $$
-r\_{\gamma}(\mathbf{x}) = \frac{\ell(\mathbf{x})}{\gamma \ell(\mathbf{x}) + (1 - \gamma) g(\mathbf{x})}
+\frac{\ell(\mathbf{x})}{g(\mathbf{x})}
 $$
-- where $\gamma \ell(\mathbf{x}) + (1 - \gamma) g(\mathbf{x})$ is the $\gamma$-*mixture density* 
-  - for some mixing proportion $0 \leq \gamma < 1$
 
 ----
 
-## Ordinary Density Ratio
+## Relative Density Ratio
 
-- The *ordinary* density ratio
+- The $\gamma$-*relative* density ratio between $\ell(\mathbf{x})$ and $g(\mathbf{x})$:
 $$
-r\_{0}(\mathbf{x}) = \frac{\ell(\mathbf{x})}{g(\mathbf{x})}
+r\_{\gamma}(\mathbf{x}) = \frac{\ell(\mathbf{x})}{\gamma \ell(\mathbf{x}) + (1 - \gamma) g(\mathbf{x})}
 $$
+  where $\gamma \ell(\mathbf{x}) + (1 - \gamma) g(\mathbf{x})$ is the $\gamma$-*mixture density* 
+  - for some mixing proportion $0 \leq \gamma < 1$
+- For $\gamma = 0$ we get the *ordinary* density ratio
+$$
+r\_0(\mathbf{x}) = \frac{\ell(\mathbf{x})}{g(\mathbf{x})}
+$$
+
+----
+
+- The relative density ratio $r\_{\gamma}$ as a function of the ordinary
+density ratio $r\_0$
+$$
+r_{\gamma}(\mathbf{x}) = ( \gamma + r_0(\mathbf{x})^{-1} (1 - \gamma) )^{-1}
+$$
+- Monotonically non-decreasing
 
 ---
+
+- Let $\ell(\mathbf{x})$ and $g(\mathbf{x})$ be distributions such that
+  - $\mathbf{x} \sim \ell(\mathbf{x})$ if $y < \tau$
+  - $\mathbf{x} \sim g(\mathbf{x})$ if $y \geq \tau$
+
+----
 
 ## Conditional
 
@@ -129,6 +147,8 @@ $$
 $$
 
 ----
+
+- Reduce maximizing EI to maximizing the relative density ratio:
 
 $$
 \begin{align}
@@ -162,150 +182,148 @@ Kernel density estimation
 
 ***
 
-Vapnik's principle
+- *Vapnik's principle*
+- *Kernel bandwidth*
+- *Error sensitivity*
+- *Curse of dimensionality*
+- *Ease of optimization*
 
 ---
 
-## Class-Probability Estimation (CPE)
+### Class-Probability Estimation (CPE)
 
----
-
-## Controls
-
-- Next: `Right Arrow` or `Space`
-- Previous: `Left Arrow`
-- Start: `Home`
-- Finish: `End`
-- Overview: `Esc`
-- Speaker notes: `S`
-- Fullscreen: `F`
-- Zoom: `Alt + Click`
-- [PDF Export](https://github.com/hakimel/reveal.js#pdf-export): `E`
-
----
-
-## Code Highlighting
-
-Inline code: `variable`
-
-Code block:
-```python
-porridge = "blueberry"
-if porridge == "blueberry":
-    print("Eating...")
-```
-
----
-
-## Math
-
-In-line math: $x + y = z$
-
-Block math:
-
+- Density ratio estimation is closely related to class-probability estimation
+- Binary variables
 $$
-f\left( x \right) = \;\frac{{2\left( {x + 4} \right)\left( {x - 4} \right)}}{{\left( {x + 4} \right)\left( {x + 1} \right)}}
+z =
+\begin{cases} 
+  1 & \text{if } y < \tau, \newline
+  0 & \text{if } y \geq \tau.
+\end{cases}
+$$
+- class-posterior probability
+$$
+\pi(\mathbf{x}) = p(z = 1 | \mathbf{x})
 $$
 
----
+----
 
-## Fragments
+<!-- 
+- ordinary density ratio
+$$
+r\_0(\mathbf{x}) = \left ( \frac{\gamma}{1 - \gamma} \right )^{-1} \frac{\pi(\mathbf{x})}{1 - \pi(\mathbf{x})}
+$$ -->
 
-Make content appear incrementally
+the $\gamma$-relative density ratio is exactly equivalent to the 
+class-posterior probability up to constant factor $\gamma^{-1}$
 
-```
-{{%/* fragment */%}} One {{%/* /fragment */%}}
-{{%/* fragment */%}} **Two** {{%/* /fragment */%}}
-{{%/* fragment */%}} Three {{%/* /fragment */%}}
-```
+- relative density ratio
+$$
+\underbrace{r\_{\gamma}(\mathbf{x})}\_\text{relative density ratio} = 
+\gamma^{-1}
+\cdot
+\underbrace{\pi(\mathbf{x})}\_\text{class-posterior probability} 
+$$
 
-Press `Space` to play!
+----
 
-{{% fragment %}} One {{% /fragment %}}
-{{% fragment %}} **Two** {{% /fragment %}}
-{{% fragment %}} Three {{% /fragment %}}
+## Quick Recap
 
----
+$$
+\underbrace{\alpha\_{\gamma}(\mathbf{x}; \mathcal{D}\_N)}\_\text{expected improvement} \propto \underbrace{r\_{\gamma}(\mathbf{x})}\_\text{relative density ratio}
+\propto \underbrace{\pi(\mathbf{x})}\_\text{class-posterior probability} 
+$$
 
-A fragment can accept two optional parameters:
-
-- `class`: use a custom style (requires definition in custom CSS)
-- `weight`: sets the order in which a fragment appears
-
----
-
-## Speaker Notes
-
-Add speaker notes to your presentation
-
-```markdown
-{{%/* speaker_note */%}}
-- Only the speaker can read these notes
-- Press `S` key to view
-{{%/* /speaker_note */%}}
-```
-
-Press the `S` key to view the speaker notes!
-
-{{< speaker_note >}}
-- Only the speaker can read these notes
-- Press `S` key to view
-{{< /speaker_note >}}
+approximated by probabilistic classifier
 
 ---
 
-## Themes
-
-- black: Black background, white text, blue links (default)
-- white: White background, black text, blue links
-- league: Gray background, white text, blue links
-- beige: Beige background, dark text, brown links
-- sky: Blue background, thin dark text, blue links
+- Parameterized function
+- Proper scoring rule
 
 ---
 
-- night: Black background, thick white text, orange links
-- serif: Cappuccino background, gray text, brown links
-- simple: White background, black text, blue links
-- solarized: Cream-colored background, dark green text, blue links
+## BO Loop
 
 ---
 
-{{< slide background-image="/img/boards.jpg" >}}
+- reduced the problem of computing \gls{EI} to that of training a probabilistic classifier
+- enjoy the strengths and benefits different state-of-the-art classifiers have to offer
+- e.g. feed-forward neural networks:
+  - universal approximators
+  - easily scalable with stochastic optimization
+  - differentiable end-to-end wrt inputs $\mathbf{x}$
 
-## Custom Slide
-
-Customize the slide style and background
-
-```markdown
-{{</* slide background-image="/img/boards.jpg" */>}}
-{{</* slide background-color="#0000FF" */>}}
-{{</* slide class="my-style" */>}}
-```
+Notes:
+- last but not least, differentiable end-to-end wrt inputs x
 
 ---
 
-## Custom CSS Example
+# Results
 
-Let's make headers navy colored.
+---
 
-Create `assets/css/reveal_custom.css` with:
+## Challenging synthetic test problems
 
-```css
-.reveal section h1,
-.reveal section h2,
-.reveal section h3 {
-  color: navy;
-}
-```
+----
+
+## Branin
+
+----
+
+## Six-hump camel
+
+----
+
+## Michalewicz5D
+
+
+----
+
+## Hartmann6D
+
+---
+
+## Meta-surrogate benchmarks for AutoML
+
+----
+
+## MetaSVM
+
+----
+
+## MetaFCNet
+
+----
+
+## MetaXGBoost
+
+---
+
+## Final Recap
+
+- Problem of computing EI can be reduced to that of probabilistic classification:
+$$
+\underbrace{\alpha\_{\gamma}(\mathbf{x}; \mathcal{D}\_N)}\_\text{expected improvement} \propto \underbrace{r\_{\gamma}(\mathbf{x})}\_\text{relative density ratio}
+\propto \underbrace{\pi(\mathbf{x})}\_\text{class-posterior probability} 
+$$
+- TPE Falls short
+- Simple implementation based on feed-forward neural network delivers promising results
+
+---
+
+## Conclusion
+
+- Simplicity and effectiveness make BORE a promising approach
+- Extensibility offers many exciting avenues for further exploration 
+
+Note:
+- BORE is a simple but effective alternative to conventional BO
+- Its extensibility offers 
 
 ---
 
 # Questions?
-
-[Ask](https://spectrum.chat/academic)
-
-[Documentation](https://sourcethemes.com/academic/docs/managing-content/#create-slides)
 
 ---
 
@@ -313,3 +331,7 @@ Create `assets/css/reveal_custom.css` with:
 
 - Bergstra, J. S., Bardenet, R., Bengio, Y., & Kégl, B. (2011). Algorithms for Hyper-parameter Optimization. In *Advances in Neural Information Processing Systems* (pp. 2546-2554).
 - Yamada, M., Suzuki, T., Kanamori, T., Hachiya, H., & Sugiyama, M. (2011). Relative Density-ratio Estimation for Robust Distribution Comparison. In *Advances in Neural Information Processing Systems* (pp. 594-602).
+
+----
+
+## References II
