@@ -23,7 +23,7 @@ $$
 \mathbf{x}^{\star} = \operatorname{argmin}\_{\mathbf{x} \in \mathcal{X}}{f(\mathbf{x})}
 $$
 
-![Observations](teaser/observations_600x371.png "Observations")
+![Observations](teaser/observations_1000x618.png "Observations") <!-- .element height="60%" width="60%" class="plain" -->
 
 Note:
 - blackbox optimization
@@ -37,21 +37,26 @@ Note:
 ## Bayesian Optimization
 
 - Output $y \sim \mathcal{N}(f(\mathbf{x}), \sigma^2)$ observed with noise variance $\sigma^2$
-- Observations $\mathcal{D}\_N = \\{ (\mathbf{x}\_n, y\_n) \\}\_{n=1}^N$
-- Surrogate probabilistic model
-$$
-p(y | \mathbf{x}, \mathcal{D}\_N)
-$$
+- Surrogate probabilistic model using past observations $\mathcal{D}\_N = \\{ (\mathbf{x}\_n, y\_n) \\}\_{n=1}^N$
+- Posterior predictive distribution $p(y | \mathbf{x}, \mathcal{D}\_N)$
 - Acquisition function to balance explore-exploit
 
 ----
 
 ### Utility function: Improvement 
 
-- Improvement over threshold $\tau$
+Improvement over threshold $\tau$
 $$
 I\_{\gamma}(\mathbf{x}) = \max(\tau - y, 0)
 $$
+
+Note:
+- non-negative improvement over tau
+
+----
+
+### Threshold
+
 - Define threshold $\tau = \Phi^{-1}(\gamma)$ 
   - where $\gamma$ is some quantile of observed $y$, i.e.
 $$
@@ -59,14 +64,14 @@ $$
 $$
   - for example, $\gamma=0$ leads to $\tau=\min\_n y\_n$
 
-Note:
-- non-negative improvement over tau
-
 ----
 
-Define $\tau$ and $\gamma$
+### Threshold: Examples
 
-*Show augmented figure here*
+1. $\gamma=\frac{1}{4}$
+2. $\gamma=0$ leading to $\tau=\min\_n y\_n$
+
+![Observations](teaser/observations_ecdf_1000x618.png "Observations") <!-- .element height="60%" width="60%" class="plain" -->
 
 ----
 
@@ -89,19 +94,31 @@ Analytical tractability poses limitations
 - discrete variables, ordered or otherwise (categorical)
 - conditional dependency structures
 
+*alternative formulation?*
+
+*circumvent posterior predictive?*
+
 ---
 
-## Ordinary Density Ratio
+## Density Ratio
 
+The density ratio between $\ell(\mathbf{x})$ and $g(\mathbf{x})$
 $$
 \frac{\ell(\mathbf{x})}{g(\mathbf{x})}
 $$
+
+*1d synthetic examples here*
+
+Note:
+- Let *l(x)* and *g(x)* be probability densities.
+- The *density ratio* between *l(x)* and *g(x)* is simply the ratio between 
+densities *l(x)* and *g(x)*.
 
 ----
 
 ## Relative Density Ratio
 
-- The $\gamma$-*relative* density ratio between $\ell(\mathbf{x})$ and $g(\mathbf{x})$:
+- The $\gamma$-*relative* density ratio between $\ell(\mathbf{x})$ and $g(\mathbf{x})$
 $$
 r\_{\gamma}(\mathbf{x}) = \frac{\ell(\mathbf{x})}{\gamma \ell(\mathbf{x}) + (1 - \gamma) g(\mathbf{x})}
 $$
@@ -114,10 +131,10 @@ $$
 
 ----
 
-## Relative and Ordinary Density Ratio
+## Ordinary and Relative Density Ratio
 
 - The relative density ratio $r\_{\gamma}(\mathbf{x})$ as a function of the 
-ordinary density ratio $r\_0(\mathbf{x})$:
+ordinary density ratio $r\_0(\mathbf{x})$
 $$
 r_{\gamma}(\mathbf{x}) = ( \gamma + r_0(\mathbf{x})^{-1} (1 - \gamma) )^{-1}
 $$
@@ -125,17 +142,26 @@ $$
 
 ---
 
+## BORE: BO by DRE
+
 - Let $\ell(\mathbf{x})$ and $g(\mathbf{x})$ be distributions such that
   - $\mathbf{x} \sim \ell(\mathbf{x})$ if $y < \tau$
   - $\mathbf{x} \sim g(\mathbf{x})$ if $y \geq \tau$
 
-![Observations](teaser/summary_600x371.png "Observations")
+![Observations](teaser/summary_1000x618.png "Observations") <!-- .element height="60%" width="60%" class="plain" -->
+
+Note:
+- Now we get to the crux of our work
+- In other words, we assume that *x* is distributed according to *l(x)* if its 
+corresponding target metric *y < tau*, otherwise, it is distributed according 
+to *g(x)*
 
 ----
 
-## Conditional
+## Define Conditional
 
-Express $p(\mathbf{x} | y, \mathcal{D}\_N)$ in terms of $\ell(\mathbf{x})$ and 
+- Instead of $p(y | \mathbf{x}, \mathcal{D}\_N)$
+- Specify $p(\mathbf{x} | y, \mathcal{D}\_N)$ in terms of $\ell(\mathbf{x})$ and 
 $g(\mathbf{x})$
 $$
 p(\mathbf{x} | y, \mathcal{D}\_N) = 
@@ -145,20 +171,22 @@ p(\mathbf{x} | y, \mathcal{D}\_N) =
 \end{cases}
 $$
 
----
+----
 
-## Bergstra et al. 2011
+### Relationship: EI and Density Ratio
 
-[Bergstra et al. 2011](#/10)
-
+- [Bergstra et al. 2011](#) demonstrate
 $$
 \underbrace{\alpha\_{\gamma}(\mathbf{x}; \mathcal{D}\_N)}\_\text{expected improvement} \propto \underbrace{r\_{\gamma}(\mathbf{x})}\_\text{relative density ratio}
 $$
 
+Note:
+- Under this construction, Bergstra et al. in 2011 showed that EI is equivalent
+to the *gamma*-relative density ratio, up to a constant factor. 
+
 ----
 
-- Reduce maximizing EI to maximizing the relative density ratio:
-
+- Reduce maximizing EI to maximizing the relative density ratio
 $$
 \begin{align}
 \mathbf{x}\^{\star} 
@@ -169,27 +197,29 @@ $$
 
 ---
 
-#### Tree-structured Parzen Estimator (TPE)
+## Tree-structured Parzen Estimator (TPE)
 
+TPE approach [(Bergstra et al. 2011)](#) for maximizing $r\_{\gamma}(\mathbf{x})$
 1. Ignore $\gamma$
 $$
 \begin{align}
 \mathbf{x}\^{\star} 
-&= \operatorname{argmax}\_{\mathbf{x} \in \mathcal{X}}{r\_0(\mathbf{x})} \newline
-&= \operatorname{argmax}\_{\mathbf{x} \in \mathcal{X}}{r\_{\gamma}(\mathbf{x})}
+&= \operatorname{argmax}\_{\mathbf{x} \in \mathcal{X}}{\color{red}{r\_{\gamma}(\mathbf{x})}} \newline
+&= \operatorname{argmax}\_{\mathbf{x} \in \mathcal{X}}{\color{green}{r\_0(\mathbf{x})}}
 \end{align}
 $$
 
-***
+----
 
-- **Singularities.** 
-$r\_0(\mathbf{x})$ is often undefined. 
-Whereas $r\_{\gamma}(\mathbf{x})$ is always well-defined and bounded above by 
-$\gamma^{-1}$ when $\gamma > 0$ (Yamada et al. 2011)
+## Shortcomings
+
+- **Singularities.** $r\_0(\mathbf{x})$ is often undefined.
+  In contrast, $r\_{\gamma}(\mathbf{x})$ is always well-defined 
+  - bounded above by $\gamma^{-1}$ when $\gamma > 0$ [(Yamada et al. 2011)](#)
 
 ----
 
-#### Tree-structured Parzen Estimator (TPE)
+## Tree-structured Parzen Estimator (TPE) II
 
 2. Tree-based variant of kernel density estimation (KDE)
   - separately estimate $\ell(\mathbf{x})$ and $g(\mathbf{x})$
@@ -197,12 +227,10 @@ $\gamma^{-1}$ when $\gamma > 0$ (Yamada et al. 2011)
 
 ----
 
+## Shortcomings II
+
 - **Vapnik's principle.** "When solving a problem, don't try to solve a more general problem as an intermediate step"
   - *density* estimation is arguably more general and difficult problem than *density ratio* estimation
-- **Kernel bandwidth.**
-- **Error sensitivity.**
-- **Curse of dimensionality.**
-- **Ease of optimization.**
 
 Note:
 
@@ -212,25 +240,49 @@ an intermediate step.
 - And in this instance, *density* estimation is a more general problem that is 
 arguably more difficult than *density ratio* estimation.
 
+----
+
+## Shortcomings III
+
+- **Kernel bandwidth.**
+- **Error sensitivity.**
+- **Curse of dimensionality.**
+- **Ease of optimization.**
+
 ---
 
-### Class-Probability Estimation (CPE)
+# Our Method
+
+*someway to avoid the pitfalls of the TPE approach?*
+
+*directly estimate the relative density ratio?*
+
+---
+
+## Class-Probability Estimation (CPE)
 
 - Density ratio estimation is closely related to class-probability estimation
-- Binary variables
+
+*references*
+
+----
+
+- Introduce binary variables
 $$
 z =
 \begin{cases} 
   1 & \text{if } y < \tau, \newline
-  0 & \text{if } y \geq \tau.
+  0 & \text{if } y \geq \tau
 \end{cases}
 $$
-- class-posterior probability
+- Let $\pi(\mathbf{x})$ abbreviate class-posterior probability 
 $$
 \pi(\mathbf{x}) = p(z = 1 | \mathbf{x})
 $$
 
 ----
+
+### Relationship: Density Ratio and Class-Posterior Probability
 
 <!-- 
 - ordinary density ratio
@@ -238,10 +290,8 @@ $$
 r\_0(\mathbf{x}) = \left ( \frac{\gamma}{1 - \gamma} \right )^{-1} \frac{\pi(\mathbf{x})}{1 - \pi(\mathbf{x})}
 $$ -->
 
-the $\gamma$-relative density ratio is exactly equivalent to the 
-class-posterior probability up to constant factor $\gamma^{-1}$
-
-- relative density ratio
+- The $\gamma$-relative density ratio is exactly equivalent to the 
+class-posterior probability, up to constant factor $\gamma^{-1}$
 $$
 \underbrace{r\_{\gamma}(\mathbf{x})}\_\text{relative density ratio} = 
 \gamma^{-1}
@@ -249,7 +299,7 @@ $$
 \underbrace{\pi(\mathbf{x})}\_\text{class-posterior probability} 
 $$
 
-----
+---
 
 ## Quick Recap
 
@@ -269,9 +319,11 @@ approximated by probabilistic classifier
 
 ## BO Loop
 
+Code
+
 ---
 
-- reduced the problem of computing \gls{EI} to that of training a probabilistic classifier
+- reduced the problem of computing EI to that of training a probabilistic classifier
 - enjoy the strengths and benefits different state-of-the-art classifiers have to offer
 - e.g. feed-forward neural networks:
   - universal approximators
@@ -291,20 +343,27 @@ Notes:
 
 ----
 
-## Branin
+## Branin (2D)
+
+![Branin](branin/regret_iterations_paper_1000x618.png "Branin")
 
 ----
 
-## Six-hump camel
+## Six-hump Camel (2D)
+
+![Six-hump camel](six_hump_camel/regret_iterations_paper_1000x618.png "Six-hump camel")
 
 ----
 
-## Michalewicz5D
+## Michalewicz5D (5D)
 
+![Michalewicz 5D](michalewicz_005d/regret_iterations_paper_1000x618.png "Michalewicz 5D")
 
 ----
 
 ## Hartmann6D
+
+![Hartmann 6D](hartmann6d/regret_iterations_paper_1000x618.png "Hartmann 6D")
 
 ---
 
@@ -326,13 +385,13 @@ Notes:
 
 ## Final Recap
 
-- Problem of computing EI can be reduced to that of probabilistic classification:
+- Problem of computing EI can be reduced to that of probabilistic classification
 $$
 \underbrace{\alpha\_{\gamma}(\mathbf{x}; \mathcal{D}\_N)}\_\text{expected improvement} \propto \underbrace{r\_{\gamma}(\mathbf{x})}\_\text{relative density ratio}
 \propto \underbrace{\pi(\mathbf{x})}\_\text{class-posterior probability} 
 $$
-- TPE Falls short
-- Simple implementation based on feed-forward neural network delivers promising results
+- TPE method falls short in important ways
+- Simple implementation based on feed-forward NN delivers promising results
 
 ---
 
