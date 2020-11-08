@@ -12,5 +12,5 @@ slide decks represented as [Markdown](https://daringfireball.net/projects/markdo
 
 ## Recent Talks
 
-1. [BORE | NeurIPS2020 Meta-learn Contributed Talk](bore-neurips2020-meta-learn/index.md#/)
+1. [BORE | NeurIPS2020 Meta-learn Contributed Talk](bore-neurips2020-meta-learn/index.html)
    Online, Dec 2020

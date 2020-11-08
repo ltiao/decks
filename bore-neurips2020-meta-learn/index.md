@@ -18,12 +18,12 @@ revealOptions:
 
 ## Blackbox optimization
 
-- Find input $\mathbf{x} \in \mathcal{X}$ that minimizes blackbox function $f : \mathcal{X} \to \mathbb{R}$:
+Find input $\mathbf{x}$ that minimizes blackbox function $f(\mathbf{x})$
 $$
 \mathbf{x}^{\star} = \operatorname{argmin}\_{\mathbf{x} \in \mathcal{X}}{f(\mathbf{x})}
 $$
 
-*Show figure here*
+![Observations](teaser/observations_600x371.png "Observations")
 
 Note:
 - blackbox optimization
@@ -129,7 +129,7 @@ $$
   - $\mathbf{x} \sim \ell(\mathbf{x})$ if $y < \tau$
   - $\mathbf{x} \sim g(\mathbf{x})$ if $y \geq \tau$
 
-*3rd diagram here*
+![Observations](teaser/summary_600x371.png "Observations")
 
 ----
 
