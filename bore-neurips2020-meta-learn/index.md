@@ -12,7 +12,11 @@ revealOptions:
 
 ***
 
-**Louis C. Tiao**, Aaron Klein, Cédric Archambeau, Edwin V. Bonilla, Matthias Seeger, and Fabio Ramos
+**Louis Tiao**, Aaron Klein, Cédric Archambeau, Edwin Bonilla, Matthias Seeger, and Fabio Ramos
+
+Note:
+- Hi, I am Louis Tiao, and in this talk, we will discuss *BORE*, an approach to *Bayesian Optimization through Density Ratio Estimation*.
+- This is joint work done with Aaron Klein, and other collaborators listed here.
 
 ---
 
@@ -26,29 +30,49 @@ $$
 ![Observations](teaser/observations_1000x618.png "Observations") <!-- .element height="60%" width="60%" class="plain" -->
 
 Note:
-- blackbox optimization
-  - global optimization
-  - derivative-free optimization
-- input vector of hyperparameter configuration
-- output scalar
+First of all, some background: Bayesian optimization is one of the most effective and
+widely-used methods for the *global* optimization of *blackbox* functions. 
+- By *blackbox*, we usually mean that we observe *no other* information about 
+  the function, other than its outputs given some inputs *x*,
+  - in particular, gradients of the function are not available
+- In the figure shown on this slide, we see
+  - noisy observations of the outputs plotted against their corresponding inputs, 
+  - and these are shown against the backdrop of the latent blackbox function 
+  which we cannot directly observe, but nonetheless wish to minimize
 
 ---
 
 ## Bayesian Optimization
 
-- Output $y \sim \mathcal{N}(f(\mathbf{x}), \sigma^2)$ observed with noise variance $\sigma^2$
-- Surrogate probabilistic model using past observations $\mathcal{D}\_N = \\{ (\mathbf{x}\_n, y\_n) \\}\_{n=1}^N$
-- Posterior predictive distribution $p(y | \mathbf{x}, \mathcal{D}\_N)$
-- Acquisition function to balance explore-exploit
+- **Probabilistic surrogate model**
+  - using past observations $\mathcal{D}\_N = \\{ (\mathbf{x}\_n, y\_n) \\}\_{n=1}^N$
+- **Acquisition function** that encodes the explore-exploit trade-off
+  - derived from posterior predictive distribution $p(y | \mathbf{x}, \mathcal{D}\_N)$
+  - e.g. *expected improvement (EI)*
+<!-- - Output $y \sim \mathcal{N}(f(\mathbf{x}), \sigma^2)$ observed with noise variance $\sigma^2$ -->
+
+Note:
+Briefly summarized, BO has *two* components:
+- At the core of BO is the *probabilistic surrogate model*, a model of the function outputs, 
+  - which is learned from past observations of input-output pairs *D*,
+  - and that can provide uncertainty estimates over outputs
+- Then, BO works by proposing solutions according to an *acquisition function*, 
+a function which encodes the trade-off between exploration and exploitation.
+  - usually a function of posterior predictive of the surrogate model
+  - in our talk, we'll be focussing on the widely-popular **expected improvement**, 
+    or **EI**, acquisition function.
 
 ----
 
 ### Utility function: Improvement 
 
-Improvement over threshold $\tau$
+- Improvement over threshold $\tau$
 $$
 I\_{\gamma}(\mathbf{x}) = \max(\tau - y, 0)
 $$
+- Note
+  - $y$ is a function of $\mathbf{x}$
+  - $\tau$ is a function of $\gamma$ (defined next)
 
 Note:
 - non-negative improvement over tau
@@ -68,8 +92,8 @@ $$
 
 ### Threshold: Examples
 
-1. $\gamma=\frac{1}{4}$
-2. $\gamma=0$ leading to $\tau=\min\_n y\_n$
+1. $\gamma = 0.25$
+2. $\gamma = 0$ leading to $\tau=\min\_n y\_n$
 
 ![Observations](teaser/observations_ecdf_1000x618.png "Observations") <!-- .element height="60%" width="60%" class="plain" -->
 
@@ -77,26 +101,49 @@ $$
 
 ## Expected Improvement (EI)
 
-- Posterior predictive
+- Expected value of $I\_{\gamma}(\mathbf{x})$
 $$
-p(y | \mathbf{x}, \mathcal{D}\_N)
+\alpha\_{\gamma}(\mathbf{x}; \mathcal{D}\_N) = \mathbb{E}\_{\color{red}{p(y | \mathbf{x}, \mathcal{D}\_N)}}[I\_{\gamma}(\mathbf{x})]
 $$
-- Expected value of $I\_{\gamma}(\mathbf{x})$ under posterior predictive 
-$$
-\alpha\_{\gamma}(\mathbf{x}; \mathcal{D}\_N) = \mathbb{E}\_{p(y | \mathbf{x}, \mathcal{D}\_N)}[I\_{\gamma}(\mathbf{x})]
-$$
+  - under posterior predictive $p(y | \mathbf{x}, \mathcal{D}\_N)$
+- For Gaussian $p(y | \mathbf{x}, \mathcal{D}\_N)$, this leads to a simple 
+analytical expression, **but also imposes constraints**
+
+Note:
+- Finally, we are ready to define the *expected improvement*, or *EI* 
+acquisition function,
+- and, as the name suggests, it's the *expected value* of the *improvement* 
+utility function, under the *posterior predictive* of the surrogate model. 
+- This reveals the requirement of analytical tractability of the posterior.
 
 ----
 
-Analytical tractability poses limitations
-- scalability
-- stationarity and homeoscedasticity
-- discrete variables, ordered or otherwise (categorical)
-- conditional dependency structures
+## Limitations
 
-*alternative formulation?*
+- Analytical tractability of $\color{red}{p(y | \mathbf{x}, \mathcal{D}\_N)}$ 
+  poses limitations
+  - scalability
+  - stationarity and homeoscedasticity
+  - discrete variables, ordered or otherwise (categorical)
+  - conditional dependency structures
 
-*circumvent posterior predictive?*
+----
+
+## BO Reimagined
+
+- *The surrogate model is only a means to an end*
+  - i.e. constructing the acquisition function
+- Alternative formulation?
+  - bypass posterior inference altogether?
+
+Note:
+- To address these limitiations, 
+  - rather than trying to patch the deficiencies of the surrogate model
+  - let us step back and re-consider the problem from a different angle
+- First, we must recognize that, at the end of the day, we care about the 
+surrogate model insofar as we can use it to construct the acquisition function
+- Can we formulate the acquisition function in such a way as to bypass 
+posterior inference in the surrogate model altogether?
 
 ---
 
@@ -110,9 +157,10 @@ $$
 *1d synthetic examples here*
 
 Note:
-- Let *l(x)* and *g(x)* be probability densities.
-- The *density ratio* between *l(x)* and *g(x)* is simply the ratio between 
-densities *l(x)* and *g(x)*.
+To do this, let us first introduce the *density ratio*. Namely,
+- let *l(x)* and *g(x)* be a pair of probability distributions.
+- Then, the *density ratio* between *l(x)* and *g(x)* is simply the ratio of 
+their densities.
 
 ----
 
@@ -129,6 +177,9 @@ $$
 r\_0(\mathbf{x}) = \frac{\ell(\mathbf{x})}{g(\mathbf{x})}
 $$
 
+Note:
+Let us consider a slight generalization
+
 ----
 
 ## Ordinary and Relative Density Ratio
@@ -139,6 +190,11 @@ $$
 r_{\gamma}(\mathbf{x}) = ( \gamma + r_0(\mathbf{x})^{-1} (1 - \gamma) )^{-1}
 $$
 - Monotonically non-decreasing
+
+Note:
+Before moving on, please keep in mind that the relative density ratio *r-gamma* 
+can be expressed as a *monotonically non-decreasing* function of the ordinary 
+density ratio *r-zero*.
 
 ---
 
@@ -186,6 +242,8 @@ to the *gamma*-relative density ratio, up to a constant factor.
 
 ----
 
+## Problem Reformulation
+
 - Reduce maximizing EI to maximizing the relative density ratio
 $$
 \begin{align}
@@ -194,6 +252,11 @@ $$
 &= \color{green}{\operatorname{argmax}\_{\mathbf{x} \in \mathcal{X}}{r\_{\gamma}(\mathbf{x})}}
 \end{align}
 $$
+
+Note:
+- Since EI is proportional to the relative ratio, we can reduce the problem of 
+maximizing EI to that of maximizing the relative ratio.
+- Thus allowing us to bypass posterior inference
 
 ---
 
@@ -249,25 +312,38 @@ arguably more difficult than *density ratio* estimation.
 - **Curse of dimensionality.**
 - **Ease of optimization.**
 
+----
+
+# Solutions?
+
+- How to avoid the pitfalls of the TPE approach?
+  - Directly estimate the relative density ratio?
+
 ---
 
-# Our Method
+## Density Ratio Estimation 
 
-*someway to avoid the pitfalls of the TPE approach?*
+- **CPE: Class-Probability Estimation** (Qin 1998, Bickel et al. 2007)
+- KMM: Kernel Mean Matching (Huang et al. 2007)
+- KLIEP: KL Importance Estimation Procedure (Sugiyama et al. 2008)
+- (R)uLSIF : (Relative) Least-squares Important Fitting (Kanamori et al. 2009; Yamada et al. 2011)
 
-*directly estimate the relative density ratio?*
-
----
-
-## Class-Probability Estimation (CPE)
-
-- Density ratio estimation is closely related to class-probability estimation
-
-*references*
+Note:
+There's a wealth of knowledge that has been built up on the subject of 
+density ratio estimation,
 
 ----
 
-- Introduce binary variables
+## Class-Probability Estimation (CPE)
+
+Density ratio estimation is tightly-linked to class-probability estimation
+(Qin 1998, Bickel et al. 2007)
+
+----
+
+## Classification Problem
+
+- Introduce binary label $z$
 $$
 z =
 \begin{cases} 
@@ -299,7 +375,16 @@ $$
 \underbrace{\pi(\mathbf{x})}\_\text{class-posterior probability} 
 $$
 
----
+Note:
+- It is well-known that the ordinary density ratio estimation is closely-linked 
+to class-probability estimation.
+- Therefore, it stands to reason that the relative density ratio is related in 
+some way as well.
+- It turns out, it is easy to verify that relative density ratio is exactly 
+equivalent to the class-posterior probability, up to constant factor 
+one-over-*gamma*
+
+----
 
 ## Quick Recap
 
@@ -308,9 +393,10 @@ $$
 \propto \underbrace{\pi(\mathbf{x})}\_\text{class-posterior probability} 
 $$
 
-approximated by probabilistic classifier
-
 ---
+
+- This is good news!
+  - approximated by probabilistic classifier
 
 - Parameterized function
 - Proper scoring rule
