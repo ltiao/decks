@@ -154,7 +154,7 @@ $$
 \frac{\ell(\mathbf{x})}{g(\mathbf{x})}
 $$
 
-*1d synthetic examples here*
+![Ordinary Density Ratio](ordinary/densities_paper_1000x500.png "Ordinary Density Ratio") <!-- .element height="70%" width="70%" class="plain" -->
 
 Note:
 To do this, let us first introduce the *density ratio*. Namely,
@@ -179,6 +179,12 @@ $$
 
 Note:
 Let us consider a slight generalization
+
+----
+
+### Relative Density Ratio Illustrated
+
+![Relative Density Ratio](relative/densities_paper_1000x500.png "Relative Density Ratio") <!-- .element height="90%" width="90%" class="plain" -->
 
 ----
 
@@ -216,8 +222,8 @@ to *g(x)*
 
 ## Define Conditional
 
-- Instead of $p(y | \mathbf{x}, \mathcal{D}\_N)$
-- Specify $p(\mathbf{x} | y, \mathcal{D}\_N)$ in terms of $\ell(\mathbf{x})$ and 
+- Instead of predictive $p(y | \mathbf{x}, \mathcal{D}\_N)$
+  - Specify $p(\mathbf{x} | y, \mathcal{D}\_N)$ in terms of $\ell(\mathbf{x})$ and 
 $g(\mathbf{x})$
 $$
 p(\mathbf{x} | y, \mathcal{D}\_N) = 
@@ -279,6 +285,9 @@ $$
 - **Singularities.** $r\_0(\mathbf{x})$ is often undefined.
   In contrast, $r\_{\gamma}(\mathbf{x})$ is always well-defined 
   - bounded above by $\gamma^{-1}$ when $\gamma > 0$ [(Yamada et al. 2011)](#)
+  - easy to find examples e.g. $\ell(x) = \mathcal{N}(0, 1)$ and $g(x) = \mathcal{N}(0.5, 1)$
+
+![Density Ratio Singularities](singularities/densities_paper_1000x500.png "Density Ratio Singularities") <!-- .element height="50%" width="50%" class="plain" -->
 
 ----
 
@@ -314,23 +323,33 @@ arguably more difficult than *density ratio* estimation.
 
 ----
 
-# Solutions?
+## Solutions?
 
 - How to avoid the pitfalls of the TPE approach?
-  - Directly estimate the relative density ratio?
+  - _**directly** estimate the relative density ratio_
+
+Note:
+- Given all these pitfalls we discussed, it stands to reason that we should be
+looking for ways to *directly estimate* the relative density ratio.
 
 ---
 
 ## Density Ratio Estimation 
 
-- **CPE: Class-Probability Estimation** (Qin 1998, Bickel et al. 2007)
-- KMM: Kernel Mean Matching (Huang et al. 2007)
-- KLIEP: KL Importance Estimation Procedure (Sugiyama et al. 2008)
-- (R)uLSIF : (Relative) Least-squares Important Fitting (Kanamori et al. 2009; Yamada et al. 2011)
+- KMM: Kernel Mean Matching (Huang et al. 2007) 
+<!-- .element: class="fragment fade-out" data-fragment-index="2" -->
+- KLIEP: KL Importance Estimation Procedure (Sugiyama et al. 2008) 
+<!-- .element: class="fragment fade-out" data-fragment-index="2" -->
+- (R)uLSIF : (Relative) Least-squares Important Fitting (Kanamori et al. 2009; Yamada et al. 2011) 
+<!-- .element: class="fragment fade-out" data-fragment-index="2" -->
+- CPE: Class-Probability Estimation (Qin 1998, Bickel et al. 2007) 
+<!-- .element: class="fragment fade-up" data-fragment-index="1" -->
 
 Note:
-There's a wealth of knowledge that has been built up on the subject of 
-density ratio estimation,
+- A wealth of knowledge has been built up on the subject of density ratio 
+estimation, and a number of sophisticated methods have been developed, but let 
+us just see how far we can get with a simple baseline.
+- Namely, that of *class-probability estimation*.
 
 ----
 
@@ -338,6 +357,9 @@ density ratio estimation,
 
 Density ratio estimation is tightly-linked to class-probability estimation
 (Qin 1998, Bickel et al. 2007)
+
+Note:
+
 
 ----
 
@@ -366,8 +388,8 @@ $$
 r\_0(\mathbf{x}) = \left ( \frac{\gamma}{1 - \gamma} \right )^{-1} \frac{\pi(\mathbf{x})}{1 - \pi(\mathbf{x})}
 $$ -->
 
-- The $\gamma$-relative density ratio is exactly equivalent to the 
-class-posterior probability, up to constant factor $\gamma^{-1}$
+- The $\gamma$-relative density ratio is equivalent to the class-posterior 
+probability up to constant factor
 $$
 \underbrace{r\_{\gamma}(\mathbf{x})}\_\text{relative density ratio} = 
 \gamma^{-1}
@@ -393,31 +415,43 @@ $$
 \propto \underbrace{\pi(\mathbf{x})}\_\text{class-posterior probability} 
 $$
 
+This is great news! <!-- .element: class="fragment fade-in-then-out" -->
+
+Class-posterior probability $\pi(\mathbf{x})$ can be approximated by training
+a probabilistic classifier! <!-- .element: class="fragment" -->
+
 ---
 
-- This is good news!
-  - approximated by probabilistic classifier
+## EI by Classifier Training
 
-- Parameterized function
-- Proper scoring rule
+- We've reduced the problem of computing EI to that of training a classifier
+  - Something we know how to do well
+  - Enjoy the strengths and benefits of different state-of-the-art classifiers
+
+Note:
+
+We've reduced the problem of computing EI to that of training a classifier
+- Something we know how to do pretty well
+- Enjoy the strengths and benefits that different state-of-the-art classifiers 
+have to offer
+
+----
+
+### Example: Neural Network Classifier
+
+An obvious choice is a *feed-forward neural network*
+- universal approximation
+- easily scalable with stochastic optimization
+- differentiable end-to-end wrt inputs $\mathbf{x}$
+
+Notes:
+- last but not least, differentiable end-to-end wrt inputs x
 
 ---
 
 ## BO Loop
 
 Code
-
----
-
-- reduced the problem of computing EI to that of training a probabilistic classifier
-- enjoy the strengths and benefits different state-of-the-art classifiers have to offer
-- e.g. feed-forward neural networks:
-  - universal approximators
-  - easily scalable with stochastic optimization
-  - differentiable end-to-end wrt inputs $\mathbf{x}$
-
-Notes:
-- last but not least, differentiable end-to-end wrt inputs x
 
 ---
 
@@ -431,25 +465,25 @@ Notes:
 
 ## Branin (2D)
 
-![Branin](branin/regret_iterations_paper_1000x618.png "Branin")
+![Branin](branin/regret_iterations_paper_1000x618.png "Branin") <!-- .element height="80%" width="80%" class="plain" -->
 
 ----
 
 ## Six-hump Camel (2D)
 
-![Six-hump camel](six_hump_camel/regret_iterations_paper_1000x618.png "Six-hump camel")
+![Six-hump camel](six_hump_camel/regret_iterations_paper_1000x618.png "Six-hump camel") <!-- .element height="80%" width="80%" class="plain" -->
 
 ----
 
 ## Michalewicz5D (5D)
 
-![Michalewicz 5D](michalewicz_005d/regret_iterations_paper_1000x618.png "Michalewicz 5D")
+![Michalewicz 5D](michalewicz_005d/regret_iterations_paper_1000x618.png "Michalewicz 5D") <!-- .element height="80%" width="80%" class="plain" -->
 
 ----
 
 ## Hartmann6D
 
-![Hartmann 6D](hartmann6d/regret_iterations_paper_1000x618.png "Hartmann 6D")
+![Hartmann 6D](hartmann6d/regret_iterations_paper_1000x618.png "Hartmann 6D") <!-- .element height="80%" width="80%" class="plain" -->
 
 ---
 
@@ -471,23 +505,25 @@ Notes:
 
 ## Final Recap
 
-- Problem of computing EI can be reduced to that of probabilistic classification
+1. Problem of computing EI can be reduced to that of probabilistic classification
 $$
 \underbrace{\alpha\_{\gamma}(\mathbf{x}; \mathcal{D}\_N)}\_\text{expected improvement} \propto \underbrace{r\_{\gamma}(\mathbf{x})}\_\text{relative density ratio}
 \propto \underbrace{\pi(\mathbf{x})}\_\text{class-posterior probability} 
 $$
-- TPE method falls short in important ways
-- Simple implementation based on feed-forward NN delivers promising results
+2. TPE method falls short in important ways
+3. Simple implementation based on feed-forward NN delivers promising results
 
 ---
 
 ## Conclusion
 
-- **Simplicity** and **effectiveness** makes BORE a promising approach
-- **Extensibility** offers many exciting avenues for further exploration 
+- **Simplicity** and **effectiveness** makes BORE an attractive approach
+- **Extensibility** of BORE offers numerous exciting avenues for further 
+exploration 
 
 Note:
-- BORE is a simple but effective alternative to conventional BO
+Overall, we conclude that
+- BORE is a simple but effective alternative approach to standard BO
 - Its extensibility offers 
 
 ---
