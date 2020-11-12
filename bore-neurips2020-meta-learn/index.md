@@ -53,14 +53,15 @@ widely-used methods for the *global* optimization of *blackbox* functions.
 
 Note:
 Briefly summarized, BO has *two* components:
-- At the core of BO is the *probabilistic surrogate model*, a model of the function outputs, 
-  - which is learned from past observations of input-output pairs *D*,
+- At the core of BO is the *probabilistic surrogate model* of the blackbox function, 
+  - which is learned from the past observations of input-output pairs *D*,
   - and that can provide uncertainty estimates over outputs
 - Then, BO works by proposing solutions according to an *acquisition function*, 
 a function which encodes the trade-off between exploration and exploitation.
-  - usually a function of posterior predictive of the surrogate model
+  - usually the acquitision function is built on the properties of surrogate 
+  model's posterior predictive distribution.
   - in our talk, we'll be focussing on the widely-popular **expected improvement**, 
-    or **EI**, acquisition function.
+  or **EI**, acquisition function.
 
 ----
 
@@ -75,27 +76,45 @@ $$
   - $\tau$ is a function of $\gamma$ (defined next)
 
 Note:
-- non-negative improvement over tau
+First, let us define the improvement utility function, which quantifies the 
+amount of non-negative improvement over some threshold tau.
+Note that:
+- y is a function of x, doesn't explicitly appear on the right-hand side
+- similarly, tau is a function of gamma, which also doesn't appear on the right-hand side,
+  and which will be defined next.
 
 ----
 
 ### Threshold
 
 - Define threshold $\tau = \Phi^{-1}(\gamma)$ 
-  - where $\gamma$ is some quantile of observed $y$, i.e.
+  - where $\gamma \in [0, 1)$ is some quantile of observed $y$, i.e.
 $$
 \gamma = \Phi(\tau) = p(y < \tau)
 $$
-  - for example, $\gamma=0$ leads to $\tau=\min\_n y\_n$
+
+Note:
+- We let *tau* be specified through a function of *gamma*, namely the *inverse CDF* 
+of the observed *y* values.
+- In other words, *tau* is some pre-specified quantile of the *y* values.
 
 ----
 
 ### Threshold: Examples
 
-1. $\gamma = 0.25$
-2. $\gamma = 0$ leading to $\tau=\min\_n y\_n$
+1. $\gamma = 0.25$ leads to first quartile
+2. $\gamma = 0$ leading to $\tau=\min\_n y\_n$ (conventional defn.)
 
 ![Observations](teaser/observations_ecdf_1000x618.png "Observations") <!-- .element height="60%" width="60%" class="plain" -->
+
+Note:
+- Here we show some examples settings of gamma and the thresholds they lead to.
+- We're using the same blackbox function and its observations from the example 
+in the beginning.
+- In the right pane of the figure, we show the empirical CDF of *y* observations.
+  - then, we can see that *gamma=0.25* leads to the first quartile of *y* observations, and
+  - *gamma=0* leads to the minimum across all *y* observations, which is the 
+  conventional setting of the threshold for EI.
 
 ----
 
@@ -110,10 +129,9 @@ $$
 analytical expression, **but also imposes constraints**
 
 Note:
-- Finally, we are ready to define the *expected improvement*, or *EI* 
-acquisition function,
-- and, as the name suggests, it's the *expected value* of the *improvement* 
-utility function, under the *posterior predictive* of the surrogate model. 
+- Finally, we are ready to define the *expected improvement* function,
+- which, as the name would suggest, is the *expected value* of the *improvement* 
+utility function (just defined), under the *posterior predictive* of the surrogate model. 
 - This reveals the requirement of analytical tractability of the posterior.
 
 ----
@@ -493,13 +511,20 @@ Code
 
 ## MetaSVM
 
+
+![MetaSVM](meta_surrogate/ranks_svm.png "MetaSVM") <!-- .element height="80%" width="80%" class="plain" -->
+
 ----
 
 ## MetaFCNet
 
+![MetaFCNet](meta_surrogate/ranks_fcnet.png "MetaFCNet") <!-- .element height="80%" width="80%" class="plain" -->
+
 ----
 
 ## MetaXGBoost
+
+![MetaXGBoost](meta_surrogate/ranks_xgboost.png "MetaXGBoost") <!-- .element height="80%" width="80%" class="plain" -->
 
 ---
 
