@@ -161,7 +161,7 @@ tractability of the predictive poses further limitations on the model's expressi
 
 - **Surrogate model is only a means to an end** (i.e. of constructing the acquisition function)
 - Alternative formulation?
-  - _**Bypass** posterior inference altogether?_
+  - _**bypass** posterior inference altogether?_
 
 Note:
 - So, to address these limitiations, 
@@ -200,10 +200,7 @@ r\_{\gamma}(\mathbf{x}) = \frac{\ell(\mathbf{x})}{\gamma \ell(\mathbf{x}) + (1 -
 $$
   where $\gamma \ell(\mathbf{x}) + (1 - \gamma) g(\mathbf{x})$ is the $\gamma$-*mixture density* 
   - for some mixing proportion $0 \leq \gamma < 1$
-- For $\gamma = 0$ we recover **ordinary** density ratio
-$$
-r\_0(\mathbf{x}) = \frac{\ell(\mathbf{x})}{g(\mathbf{x})}
-$$
+- For $\gamma = 0$ we recover **ordinary** density ratio $r\_0(\mathbf{x}) = \ell(\mathbf{x}) / g(\mathbf{x})$
 
 Note:
 - To generalize this slightly, we introduce the *relative* density ratio, 
@@ -240,8 +237,8 @@ density ratio *r_0*.
 
 ## BORE: BO by DRE
 
-- Define $\tau$ as a function of $\gamma$ as before, i.e. $\tau = \Phi^{-1}(\gamma)$
-- Then, let $\ell(\mathbf{x})$ and $g(\mathbf{x})$ be distributions such that
+- Define $\tau$ as before, i.e. $\tau = \Phi^{-1}(\gamma)$
+- Then, let $\ell(\mathbf{x})$ and $g(\mathbf{x})$ be distributions s.t.
   - $\mathbf{x} \sim \ell(\mathbf{x})$ if $y < \tau$
   - $\mathbf{x} \sim g(\mathbf{x})$ if $y \geq \tau$
 
@@ -332,7 +329,7 @@ of *r_0*.
 
 ----
 
-## Shortcomings
+### Shortcomings
 
 - **Singularities.** $r\_0(\mathbf{x})$ is often undefined.
   In contrast, $r\_{\gamma}(\mathbf{x})$ is always well-defined 
@@ -407,8 +404,8 @@ more general problem as an intermediate step.
 - **Kernel bandwidth.** KDE depends crucially on the selecting
 appropriate kernel bandwidths
 - **Error sensitivity.** Estimating *two* densities 
-  - Optimal bandwith for estimating one *density* may be detrimental for estimating the *density ratio*
-  - Unforgiving to errors in the denominator $g(\mathbf{x})$
+  - Optimal bandwidth for estimating a *density* may be detrimental to estimating the *density ratio*
+  - Unforgiving to errors in denominator $g(\mathbf{x})$
 - **Curse of dimensionality.** KDE often struggles in higher dimensions.
 - **Ease of optimization.** Need to maximize ratio of KDEs for candidate suggestion.
 
@@ -592,6 +589,57 @@ appropriate classification loss, such as the log-loss.
 2. We suggest a candidate by maximizing input *x* wrt the classifier.
 3. Then we evaluate the function at the suggested point, and update the dataset as usual
 4. And then we repeat this until some budget is exhausted.
+
+----
+
+## Code
+
+<pre>
+  <code data-line-numbers="4|7-14|25-30|32-33|35-36|38-39|41-43">
+  import numpy as np
+
+  from bore.models import MaximizableSequential
+  from tensorflow.keras.layers import Dense
+
+  # build model
+  classifier = MaximizableSequential()
+  classifier.add(Dense(16, activation="relu"))
+  classifier.add(Dense(16, activation="relu"))
+  classifier.add(Dense(1, activation="sigmoid"))
+
+  # compile model
+  classifier.compile(optimizer="adam", loss="binary_crossentropy")
+
+  features = []
+  targets = []
+
+  # initialize design
+  features.extend(features_initial_design)
+  targets.extend(targets_initial_design)
+
+  for i in range(num_iterations):
+
+      # construct classification problem
+      X = np.vstack(features)
+      y = np.hstack(targets)
+
+      tau = np.quantile(y, q=0.25)
+      z = np.less(y, tau)
+
+      # update classifier
+      classifier.fit(X, z, epochs=200, batch_size=64)
+
+      # suggest new candidate
+      x_next = classifier.argmax(bounds=bounds, method="L-BFGS-B", num_start_points=3)
+
+      # evaluate blackbox
+      y_next = blackbox.evaluate(x_next)
+
+      # update dataset
+      features.append(x_next)
+      targets.append(y_next)
+  </code>
+</pre>
 
 ---
 
