@@ -69,7 +69,7 @@ a function which encodes the trade-off between *exploration* and *exploitation*.
   $$
 - By convention, $\tau$ is lowest function value observed so far 
   $$
-  \tau = \min\_n y\_n
+  \tau = \min\_{n=1, \dotsc, N} y\_n
   $$
 
 Note:
@@ -100,13 +100,13 @@ utility function (just defined), under the **posterior predictive** of the surro
   $$
   p(y | \mathbf{x}, \mathcal{D}\_N) = \mathcal{N}(y | \mu(\mathbf{x}), \sigma^2(\mathbf{x})).
   $$ 
-- We obtain a a simple analytic expression
+- We obtain an analytic expression
   $$
   \alpha(\mathbf{x}; \mathcal{D}\_N, \tau) = 
-  \sigma(\mathbf{x}) \cdot \left [ \nu(\mathbf{x}) \cdot \Psi(\nu(\mathbf{x})) + \psi(\nu(\mathbf{x})) \right ]
+  \sigma(\mathbf{x}) \left [ \nu(\mathbf{x}) \Psi(\nu(\mathbf{x})) + \psi(\nu(\mathbf{x})) \right ]
   $$
   where $\nu(\mathbf{x}) = \frac{\tau - \mu(\mathbf{x})}{\sigma(\mathbf{x})}$, 
-  and $\Psi, \psi$ denote the cdf and pdf of the normal distribution, respectively.
+  and $\Psi, \psi$ denote the cdf and pdf of the normal distribution, resp.
 
 Note:
 - Furthermore, it should be noted that, if the predictive is *Gaussian*, this leads to a nice closed-form expression.
@@ -218,38 +218,47 @@ density ratio *r_0*.
 
 ## BORE: BO by DRE
 
-- Define $\tau$ as before, i.e. $\tau = \Phi^{-1}(\gamma)$
-- Then, let $\ell(\mathbf{x})$ and $g(\mathbf{x})$ be distributions s.t.
-  - $\mathbf{x} \sim \ell(\mathbf{x})$ if $y < \tau$
-  - $\mathbf{x} \sim g(\mathbf{x})$ if $y \geq \tau$
-
-![Observations](teaser/summary_1000x618.png "Observations") <!-- .element height="55%" width="55%" class="plain" -->
+- Define $\tau$ as the $\gamma$-th quantile of the observed $y$ values $\tau = \Phi^{-1}(\gamma)$, where
+  $$
+  \gamma = \Phi(\tau) = p(y < \tau)
+  $$
 
 Note:
-- Now we return to the problem at hand. Namely, finding an alternative 
-expression of the EI acquisition function.
-- To do this, let's first define *tau* as a function of *gamma* like before, 
-with *tau* being the *gamma*-quantile of the *y* values. 
-- Then, let us partition the observations, such that 
-  - if the output *y* is less than *tau*, then the corresponding input *x* is distributed according to *l*.
-  - Otherwise, it is distributed according to *g*.
+- We now discuss the conditions under which EI can be expressed as the relative density-ratio in the previous slides.
+- To do this, let's first specify *tau* as a function of *gamma*, specifically, with *tau* being the *gamma*th quantile of the observed *y* values. 
 
 ----
 
-## Define Conditional
+### Threshold: Examples
 
-- Instead of predictive $p(y | \mathbf{x}, \mathcal{D}\_N)$
-  - Specify $p(\mathbf{x} | y, \mathcal{D}\_N)$ in terms of $\ell(\mathbf{x})$ and 
-$g(\mathbf{x})$
-$$
-p(\mathbf{x} | y, \mathcal{D}\_N) = 
-\begin{cases} 
-  \ell(\mathbf{x}) & \text{if } y < \tau, \newline
-  g(\mathbf{x}) & \text{if } y \geq \tau
-\end{cases}
-$$
+1. $\gamma = 0.25$ leads to *first quartile*
+2. $\gamma = 0$ leads to $\tau=\min\_n y\_n$ (i.e. the conventional definition)
+
+![Observations](teaser/observations_ecdf_1000x618.png "Observations") <!-- .element height="60%" width="60%" class="plain" -->
 
 Note:
+To illustrate we show some example settings of gamma and the thresholds they lead to.
+- We're using the same blackbox function from the example in the beginning, along with its observations 
+- In the right pane of the figure, we show the empirical CDF of *y* observations.
+  - then, we can see that *gamma=0.25* corresponds to the first quartile of *y* observations, and
+  - with *gamma=0* we recover the minimum across all *y* observations, which is the 
+  conventional setting of the threshold for EI.
+
+----
+
+### Marginal Densities
+
+- Define densities $\ell(\mathbf{x})$ and $g(\mathbf{x})$: 
+  - $\ell(\mathbf{x}) = p \left (\mathbf{x} | y \leq \tau, \mathcal{D}\_N \right )$ 
+  - $g(\mathbf{x}) = p \left (\mathbf{x} | y > \tau, \\mathcal{D}\_N \right )$
+
+![Observations](teaser/header_1500x927.png "Observations") <!-- .element height="55%" width="55%" class="plain" -->
+
+Notes:
+- Then, let us partition the observations, such that 
+  - if the output *y* is less than *tau*, then the corresponding input *x* is distributed according to *l*.
+  - Otherwise, it is distributed according to *g*.
+- Define the pair of marginal distributions as
 - Now, rather than doing posterior inference to derive the predictive, let us
 instead specify the conditional *p(x|y)* directly.
 - In particular, if *y* is less than *tau*, we let it be equal to density *l*.
@@ -257,11 +266,11 @@ instead specify the conditional *p(x|y)* directly.
 
 ----
 
-### Relationship: EI and Density Ratio
+### Relationship: EI and Density-Ratio
 
 - [Bergstra et al. 2011](#) demonstrate
 $$
-\underbrace{\alpha\_{\gamma}(\mathbf{x}; \mathcal{D}\_N)}\_\text{expected improvement} \propto \underbrace{r\_{\gamma}(\mathbf{x})}\_\text{relative density ratio}
+\underbrace{\alpha \left(\mathbf{x}; \mathcal{D}\_N, \Phi^{-1}(\gamma)\right)}\_\text{expected improvement} \propto \underbrace{r\_{\gamma}(\mathbf{x})}\_\text{relative density-ratio}
 $$
 
 Note:
@@ -270,13 +279,29 @@ Note:
 
 ----
 
+### Sketch Proof 
+
+Instead of computing $\color{OrangeRed}{p(y | \mathbf{x}, \mathcal{D}\_N)}$ 
+this strategy instead defines $\color{ForestGreen}{p(y)}$ and $\color{ForestGreen}{p(\mathbf{x} | y, \mathcal{D}\_N)}$.
+$$
+\color{OrangeRed}{p(y | \mathbf{x}, \mathcal{D}\_N)} 
+\propto \color{ForestGreen}{p(\mathbf{x} | y, \mathcal{D}\_N) p(y)}
+$$
+
+Notes:
+- Instead of computing the predictive, which is potentially rife with intractabilities
+- We instead specify the marginal *p(y)* and the conditional *p(x | y)*
+- Bayes rule allows us to re-write the predictive in these terms
+
+----
+
 ## Problem Reformulation
 
-- Reduces maximizing *EI* to maximizing the *relative density ratio*
+- Reduces maximizing *EI* to maximizing the *relative density-ratio*
 $$
 \begin{align}
-\mathbf{x}\^{\star} 
-&= \color{OrangeRed}{\operatorname{argmax}\_{\mathbf{x} \in \mathcal{X}}{\alpha\_{\gamma}(\mathbf{x}; \mathcal{D}\_N)}} \newline
+\mathbf{x}\_{N+1} 
+&= \color{OrangeRed}{\operatorname{argmax}\_{\mathbf{x} \in \mathcal{X}}{\alpha \left(\mathbf{x}; \mathcal{D}\_N, \Phi^{-1}(\gamma)\right)}} \newline
 &= \color{green}{\operatorname{argmax}\_{\mathbf{x} \in \mathcal{X}}{r\_{\gamma}(\mathbf{x})}}
 \end{align}
 $$
@@ -295,9 +320,9 @@ TPE approach [(Bergstra et al. 2011)](#) for maximizing $r\_{\gamma}(\mathbf{x})
 1. Maximize $r\_0(\mathbf{x})$ instead
 $$
 \begin{align}
-\mathbf{x}\^{\star} 
+\mathbf{x}\_{\star} 
 &= \color{OrangeRed}{\operatorname{argmax}\_{\mathbf{x} \in \mathcal{X}}{r\_{\gamma}(\mathbf{x})}} \newline
-&= \color{green}{\operatorname{argmax}\_{\mathbf{x} \in \mathcal{X}}{r\_0(\mathbf{x})}}
+&= \color{ForestGreen}{\operatorname{argmax}\_{\mathbf{x} \in \mathcal{X}}{r\_0(\mathbf{x})}}
 \end{align}
 $$
 
@@ -440,42 +465,42 @@ And how can we go about this? Well,
 
 ## Class-Probability Estimation (CPE)
 
-- Density ratio estimation is tightly-linked to class-probability estimation
-(Qin 1998, Bickel et al. 2007)
-- What about **relative** density ratio estimation?
+- Density-ratio estimation is tightly-linked to class-probability estimation
+[(Qin 1998, Bickel et al. 2007)](#)
+- What about **relative** density-ratio estimation?
 
 Note:
-- It's been long-established that **density ratio estimation** is closely-linked to **class-probability estimation**.
-- Therefore, it stands to reason that this applies to the **relative** density ratio as well.
+- It's been long-established that **density-ratio estimation** is closely-linked to **probabilistic classification**.
+- Therefore, it stands to reason that this link can be extended to the **relative** density-ratio as well.
 
 ----
 
 ## Classification Problem
 
-- Introduce binary label $z$
-$$
-z =
-\begin{cases} 
-  1 & \text{if } y < \tau, \newline
-  0 & \text{if } y \geq \tau
-\end{cases}
-$$
 - Let $\pi(\mathbf{x})$ abbreviate **class-posterior probability**
-$$
-\pi(\mathbf{x}) = p(z = 1 | \mathbf{x})
-$$
+  $$
+  \pi(\mathbf{x}) = p(z = 1 | \mathbf{x})
+  $$
+  where $z$ is binary class label
+  $$
+  z =
+  \begin{cases} 
+    1 & \text{if } y \leq \tau, \newline
+    0 & \text{if } y > \tau
+  \end{cases}
+  $$
+
 
 Note:
-- To see this, let us define a classification problem by introducing binary 
-  labels *z*.
-  - which belongs to the positive class, if output *y* is less than *tau*,
+- First, we let *pi* denote the *class-posterior probability*, that is, the 
+  *class-membership probability* of *x* belonging to the positive class,
+- and the classes are labeled such that
+  - *x* belongs to the positive class if output *y* is less than *tau*,
   - otherwise, it belongs to the negative class 
-- Further, we let *pi* denote the *class-posterior probability*, that is, the 
-  *posterior probability* of *x* belonging to the positive class.
 
 ----
 
-### Relationship: Density Ratio and Class-Posterior Probability
+### Relationship: Density-Ratio and Class-Posterior Probability
 
 <!-- 
 - ordinary density ratio
@@ -483,12 +508,12 @@ $$
 r\_0(\mathbf{x}) = \left ( \frac{\gamma}{1 - \gamma} \right )^{-1} \frac{\pi(\mathbf{x})}{1 - \pi(\mathbf{x})}
 $$ -->
 
-- The $\gamma$-relative density ratio is equivalent to the class-posterior 
-probability up to constant factor
+- The $\gamma$-relative density-ratio is equivalent to the class-posterior 
+probability up to constant factor $\gamma^{-1}$
 $$
-\underbrace{r\_{\gamma}(\mathbf{x})}\_\text{relative density ratio} = 
+\underbrace{r\_{\gamma}(\mathbf{x})}\_\text{relative density-ratio} = 
 \gamma^{-1}
-\cdot
+\times
 \underbrace{\pi(\mathbf{x})}\_\text{class-posterior probability} 
 $$
 
@@ -501,26 +526,25 @@ to the class-posterior probability, up to constant factor *gamma inverse*.
 ## Quick Recap
 
 $$
-\underbrace{\alpha\_{\gamma}(\mathbf{x}; \mathcal{D}\_N)}\_\text{expected improvement} \propto \underbrace{r\_{\gamma}(\mathbf{x})}\_\text{relative density ratio}
+\underbrace{\alpha \left(\mathbf{x}; \mathcal{D}\_N, \Phi^{-1}(\gamma)\right)}\_\text{expected improvement} \propto \underbrace{r\_{\gamma}(\mathbf{x})}\_\text{relative density-ratio}
 \propto \underbrace{\pi(\mathbf{x})}\_\text{class-posterior probability} 
 $$
 
-This is great news! <!-- .element: class="fragment fade-in-then-out" -->
-
-Class-posterior probability $\pi(\mathbf{x})$ can be approximated by training a probabilistic classifier! <!-- .element: class="fragment" -->
+- This is good news! <!-- .element: class="fragment fade-in-then-out" -->
+- Class-posterior probability $\pi(\mathbf{x})$ can be approximated by training a probabilistic classifier! <!-- .element: class="fragment" -->
 
 Note: 
 So, just to quickly recap:
 - EI is proportional to the relative density ratio, which is in turn 
 proportional to the class-posterior probability.
-- This is actually great news, because we can approximate the last of these,
+- This is actually great news, because we can approximate the last of these
 simply by training a probabilistic classifier.
 
 ---
 
-### EI by Classifier Training
+### EI by Classification
 
-- We've reduced the problem of computing EI to that of training a classifier
+- We've reduced the problem of computing EI to that of learning a classifier
   - Enjoy the benefits of different state-of-the-art classifiers
   - Retain the advantages of TPE and avoid its pitfalls
   - Build arbitrarily expressive classifiers
@@ -540,9 +564,11 @@ non-stationary phenomena.
 ### Example: Neural Network Classifier
 
 An obvious choice is a *feed-forward neural network*
-- universal approximation
-- easily scalable with stochastic optimization
-- differentiable end-to-end wrt inputs $\mathbf{x}$
+1. universal approximation
+2. easily scalable with stochastic optimization
+3. differentiable end-to-end wrt inputs $\mathbf{x}$
+
+Downside: Data-intensive
 
 Notes:
 An obvious candidate for parameterizing this classifier is a neural network,
@@ -551,6 +577,20 @@ An obvious candidate for parameterizing this classifier is a neural network,
 stochastic optimization.
 - This is not to mention they are differentiable end-to-end wrt inputs *x*, which
 means we can take advantage of methods like L-BFGS for candidate suggestion.
+- Since they tend to be overparameterized, a notable weakness is that they are 
+considerably data-hungry and may not be suitable for sparse data regimes. 
+
+----
+
+### Tree-based ensembles 
+
+Random forests (RF) and gradient-boosted trees (XGBoost)
+
+1. deal well with discrete and conditional inputs, by design
+2. scale to high-dimensions
+3. scalable and highly-parallelizable
+
+Downside: Hard to optimize
 
 ---
 
@@ -574,53 +614,69 @@ appropriate classification loss, such as the log-loss.
 
 ----
 
-## Code
+### Code: Model Definition
 
 <pre>
-  <code data-line-numbers="4|7-14|25-30|32-33|35-36|38-39|41-43">
-  import numpy as np
+<code data-line-numbers="4|7-14">
+import numpy as np
 
-  from bore.models import MaximizableSequential
-  from tensorflow.keras.layers import Dense
+from bore.models import MaximizableSequential
+from tensorflow.keras.layers import Dense
 
-  # build model
-  classifier = MaximizableSequential()
-  classifier.add(Dense(16, activation="relu"))
-  classifier.add(Dense(16, activation="relu"))
-  classifier.add(Dense(1, activation="sigmoid"))
+# build model
+classifier = MaximizableSequential()
+classifier.add(Dense(16, activation="relu"))
+classifier.add(Dense(16, activation="relu"))
+classifier.add(Dense(1, activation="sigmoid"))
 
-  # compile model
-  classifier.compile(optimizer="adam", loss="binary_crossentropy")
+# compile model
+classifier.compile(optimizer="adam", loss="binary_crossentropy")
+</code>
+</pre>
 
-  features = []
-  targets = []
+Note:
+- For the BORE variant based on a feed-forward neural network, or multi-layer perceptron
+- Subclass Sequential from Keras that adds one additional method
+- Everything else remains the same, as we can see here.
+- We specify a sequence of Dense, or fully-connected, layers.
 
-  # initialize design
-  features.extend(features_initial_design)
-  targets.extend(targets_initial_design)
+----
 
-  for i in range(num_iterations):
+### Code: Optimization Loop
 
-      # construct classification problem
-      X = np.vstack(features)
-      y = np.hstack(targets)
+<pre>
+<code data-line-numbers="2-7|11-16|18-19|21-24|26-27|29-31">
+features = []
+targets = []
 
-      tau = np.quantile(y, q=0.25)
-      z = np.less(y, tau)
+# initial designs
+features.extend(features_init)
+targets.extend(targets_init)
 
-      # update classifier
-      classifier.fit(X, z, epochs=200, batch_size=64)
+for i in range(num_iterations):
 
-      # suggest new candidate
-      x_next = classifier.argmax(method="L-BFGS-B", num_start_points=3, bounds=bounds)
+    # construct classification problem
+    X = np.vstack(features)
+    y = np.hstack(targets)
 
-      # evaluate blackbox
-      y_next = blackbox.evaluate(x_next)
+    tau = np.quantile(y, q=0.25)
+    z = np.less(y, tau)
 
-      # update dataset
-      features.append(x_next)
-      targets.append(y_next)
-  </code>
+    # update classifier
+    classifier.fit(X, z, epochs=200, batch_size=64)
+
+    # suggest new candidate
+    x_next = classifier.argmax(method="L-BFGS-B", 
+                               num_start_points=3,
+                               bounds=bounds)
+
+    # evaluate blackbox
+    y_next = blackbox.evaluate(x_next)
+
+    # update dataset
+    features.append(x_next)
+    targets.append(y_next)
+</code>
 </pre>
 
 ---
