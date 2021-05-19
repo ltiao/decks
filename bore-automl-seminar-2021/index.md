@@ -12,7 +12,7 @@ revealOptions:
 
 ***
 
-**Louis Tiao**, Aaron Klein, Cédric Archambeau, Edwin Bonilla, Matthias Seeger, and Fabio Ramos
+**Louis Tiao**, Aaron Klein, Matthias Seeger, Cédric Archambeau, Edwin Bonilla and Fabio Ramos
 
 Note:
 - Hi. In this talk, we describe an approach to *Bayesian Optimization* by *Density Ratio Estimation*.
@@ -112,6 +112,15 @@ Note:
 - Furthermore, it should be noted that, if the predictive is *Gaussian*, this leads to a nice closed-form expression.
 - It is for this reason (and many others) that the Gaussian process is arguably the *de facto*
 probabilistic model for BO.
+
+----
+
+### Gaussian process regression
+
+The case for Gaussian processes in BO: 
+- expressive and flexible
+- well-calibrated predictive uncertainty
+- Gaussian-Gaussian conjugacy $\Rightarrow$ Gaussian predictive
 
 ----
 
@@ -216,7 +225,7 @@ density ratio *r_0*.
 
 ---
 
-## BORE: BO by DRE
+## EI as a Density Ratio
 
 - Define $\tau$ as the $\gamma$-th quantile of the observed $y$ values $\tau = \Phi^{-1}(\gamma)$, where
   $$
@@ -246,27 +255,30 @@ To illustrate we show some example settings of gamma and the thresholds they lea
 
 ----
 
-### Marginal Densities
+### Conditional Densities
 
-- Define densities $\ell(\mathbf{x})$ and $g(\mathbf{x})$: 
-  - $\ell(\mathbf{x}) = p \left (\mathbf{x} | y \leq \tau, \mathcal{D}\_N \right )$ 
-  - $g(\mathbf{x}) = p \left (\mathbf{x} | y > \tau, \\mathcal{D}\_N \right )$
+1. Choose some $\gamma > 0$ and set $\tau = \Phi^{-1}(\gamma)$ 
+2. Define densities $\ell(\mathbf{x})$ and $g(\mathbf{x})$: 
+$$
+\ell(\mathbf{x}) = p \left (\mathbf{x} | y \leq \tau, \mathcal{D}\_N \right),
+\quad
+g(\mathbf{x}) = p \left (\mathbf{x} | y > \tau, \\mathcal{D}\_N \right )
+$$
 
 ![Observations](teaser/header_1500x927.png "Observations") <!-- .element height="55%" width="55%" class="plain" -->
 
 Notes:
-- Then, let us partition the observations, such that 
-  - if the output *y* is less than *tau*, then the corresponding input *x* is distributed according to *l*.
-  - Otherwise, it is distributed according to *g*.
-- Define the pair of marginal distributions as
-- Now, rather than doing posterior inference to derive the predictive, let us
-instead specify the conditional *p(x|y)* directly.
-- In particular, if *y* is less than *tau*, we let it be equal to density *l*.
-- Otherwise, we let it be equal to *g*.
+- First we choose some positive *gamma* and determine *tau* accordingly
+- Then, let's partition the observed inputs, such that 
+  - if the corresponding output is less than *tau*, then it is distributed according to *l*,
+  - otherwise, it is distributed according to *g*
+- In this illustration, I've selected *gamma = 1/3* which leads to *tau* taking on the value marked by the horizontal dashed line. 
+  - Every point below this line is in the smallest one-third of observed *y* values, and their density is shown in red
+  - Likewise, every point above this line is in the largest two-thirds of observed *y* values, and their density is shown in blue
 
 ----
 
-### Relationship: EI and Density-Ratio
+### EI as a Density-Ratio
 
 - [Bergstra et al. 2011](#) demonstrate
 $$
@@ -274,24 +286,69 @@ $$
 $$
 
 Note:
-- Then, remarkably, under these definitions, EI is equivalent to the *gamma* relative density ratio, up to a constant factor. 
+- Then, remarkably, under these definitions, EI is equivalent to the relative density-ratio, up to a constant factor. 
 - As was demonstrated by Bergstra et al. in 2011.
 
 ----
 
-### Sketch Proof 
+#### Sketch Proof I
 
-Instead of computing $\color{OrangeRed}{p(y | \mathbf{x}, \mathcal{D}\_N)}$ 
-this strategy instead defines $\color{ForestGreen}{p(y)}$ and $\color{ForestGreen}{p(\mathbf{x} | y, \mathcal{D}\_N)}$.
+- Instead of computing $\color{OrangeRed}{p(y | \mathbf{x}, \mathcal{D}\_N)}$ *directly*
 $$
-\color{OrangeRed}{p(y | \mathbf{x}, \mathcal{D}\_N)} 
-\propto \color{ForestGreen}{p(\mathbf{x} | y, \mathcal{D}\_N) p(y)}
+p(y | \mathbf{x}, \mathcal{D}\_N) = \int p(y | f) p(f | \mathbf{x}, \mathcal{D}\_N) \mathrm{d}f
+$$
+- Specify $\color{ForestGreen}{p(y)}$ and $\color{ForestGreen}{p(\mathbf{x} | y, \mathcal{D}\_N)}$, 
+and represent $\color{OrangeRed}{p(y | \mathbf{x}, \mathcal{D}\_N)}$ *indirectly* through Bayes' rule
+$$
+\color{OrangeRed}{p(y | \mathbf{x}, \mathcal{D}\_N)} = 
+\frac{\color{ForestGreen}{p(\mathbf{x} | y, \mathcal{D}\_N) p(y)}}{p(\mathbf{x} | \mathcal{D}\_N)}
 $$
 
 Notes:
-- Instead of computing the predictive, which is potentially rife with intractabilities
+- To give a high-level overview and provide some intuition on how this comes about, let's walk through a sketch proof
+- Rather than the usual approach of specifying a model joint consisting of observed and latent variables, and then computing the predictive by marginalizing out the latent variables
 - We instead specify the marginal *p(y)* and the conditional *p(x | y)*
-- Bayes rule allows us to re-write the predictive in these terms
+- In this way, Bayes rule allows us to re-write the predictive in these terms
+
+----
+
+#### Sketch Proof II
+
+$$
+\begin{align}
+  \alpha & (\mathbf{x}; \mathcal{D}\_N, \tau) \newline 
+  & = \mathbb{E}\_{\color{OrangeRed}{p(y | \mathbf{x}, \mathcal{D}\_N)}}[\max(\tau - y, 0)] \newline 
+  & = \int_{-\infty}^{\tau} (\tau - y) \color{OrangeRed}{p(y | \mathbf{x}, \mathcal{D}\_N)} \mathrm{d}y \newline
+  & = \frac{1}{p(\mathbf{x} | \mathcal{D}\_N)} \int_{-\infty}^{\tau} (\tau - y) \color{ForestGreen}{p(\mathbf{x} | y, \mathcal{D}\_N)} \color{ForestGreen}{p(y | \mathcal{D}\_N)} \mathrm{d}y
+\end{align}
+$$
+
+Notes:
+- Write out the definition of EI
+- Substitute occurrence of the predictive with the terms we just discussed 
+
+----
+
+#### Sketch Proof III
+
+- Numerator
+$$
+\int_{-\infty}^{\tau} (\tau - y) \color{ForestGreen}{p(\mathbf{x} | y, \mathcal{D}\_N)} \color{ForestGreen}{p(y | \mathcal{D}\_N)} \mathrm{d}y \propto \ell(\mathbf{x})
+$$
+- Denominator
+$$
+p(\mathbf{x} | \mathcal{D}\_N) = \gamma \ell(\mathbf{x}) + (1 - \gamma) g(\mathbf{x})
+$$
+
+$$
+\therefore \alpha(\mathbf{x}; \mathcal{D}\_N, \tau) \propto r\_{\gamma}(\mathbf{x})
+$$
+
+Notes:
+- It is straightforward to verify 
+  * that the numerator is proportional to *gamma*, and
+  * that the denominator is the *gamma* mixture density of *l* and *g*
+- Therefore, EI is proportional to the *gamma* relative density-ratio 
 
 ----
 
@@ -307,7 +364,7 @@ $$
 $$
 
 Note:
-- And so, since EI is proportional to the relative ratio, we can reduce the 
+- So to recapitulate: since EI is proportional to the relative ratio, we can reduce the 
 problem of maximizing the former to that of maximizing the latter.
 - Thus, effectively allowing us to bypass posterior inference in the surrogate
 model.
@@ -373,7 +430,7 @@ density estimation, and then
 
 ----
 
-## Advantages
+## TPE Advantages
 
 - Computational cost $\mathcal{O}(N)$ instead of $\mathcal{O}(N^3)$ in GP inference
 - Equipped to handle tree-structured, continuous, and discrete (ordered and unordered) inputs
@@ -390,11 +447,8 @@ discuss next.
 
 ## Shortcomings II
 
-**Vapnik's principle.**
-
-> When solving a problem, don't try to solve a more general problem as an intermediate step
-
-- *density* estimation is arguably more general and difficult problem than *density ratio* estimation
+- **Vapnik's principle.** *When solving a problem, don't try to solve a more general problem as an intermediate step*
+  - *density* estimation is arguably more general and difficult problem than *density ratio* estimation
 
 Note:
 
@@ -415,8 +469,6 @@ appropriate kernel bandwidths
 - **Error sensitivity.** Estimating *two* densities 
   - Optimal bandwidth for estimating a *density* may be detrimental to estimating the *density ratio*
   - Unforgiving to errors in denominator $g(\mathbf{x})$
-- **Curse of dimensionality.** KDE often struggles in higher dimensions.
-- **Ease of optimization.** Need to maximize ratio of KDEs for candidate suggestion.
 
 Note:
 - One of the things that make density estimation so hard is the 
@@ -428,6 +480,15 @@ densities,
   - This factor makes this approach unforgiving to any error in estimating the 
   individual densities, particularly in that of the denominator *g* which has 
   an outsized influence on the resulting density ratio
+
+----
+
+### Shortcomings IV
+
+- **Curse of dimensionality.** KDE often struggles in higher dimensions.
+- **Ease of optimization.** Need to maximize ratio of KDEs for candidate suggestion.
+
+Note:
 - For these reasons and more, KDE often falls short in higher dimensions
 - And finally, we ultimately care about *optimizing* the density ratio 
 in order to suggest candidates. The ratio of KDEs of cumbersome to work with 
@@ -526,8 +587,11 @@ to the class-posterior probability, up to constant factor *gamma inverse*.
 ## Quick Recap
 
 $$
-\underbrace{\alpha \left(\mathbf{x}; \mathcal{D}\_N, \Phi^{-1}(\gamma)\right)}\_\text{expected improvement} \propto \underbrace{r\_{\gamma}(\mathbf{x})}\_\text{relative density-ratio}
-\propto \underbrace{\pi(\mathbf{x})}\_\text{class-posterior probability} 
+\begin{align}
+\underbrace{\alpha \left(\mathbf{x}; \mathcal{D}\_N, \Phi^{-1}(\gamma)\right)}\_\text{expected improvement} 
+& \propto \underbrace{r\_{\gamma}(\mathbf{x})}\_\text{relative density-ratio} \newline
+& \propto \underbrace{\pi(\mathbf{x})}\_\text{class-posterior probability} 
+\end{align}
 $$
 
 - This is good news! <!-- .element: class="fragment fade-in-then-out" -->
@@ -542,11 +606,11 @@ simply by training a probabilistic classifier.
 
 ---
 
-### EI by Classification
+### Compute EI by Classification
 
-- We've reduced the problem of computing EI to that of learning a classifier
-  - Enjoy the benefits of different state-of-the-art classifiers
+- Computing EI $\Leftrightarrow$ learning a probabilistic classifier
   - Retain the advantages of TPE and avoid its pitfalls
+  - Enjoy the benefits of different state-of-the-art classifiers
   - Build arbitrarily expressive classifiers
 
 Note:
@@ -559,16 +623,21 @@ a classifier, which is something we know how to do pretty well,
 approximators that have the capacity to deal to with complex, non-linear and 
 non-stationary phenomena.
 
+---
+
+## Choice of Probabilistic Classifier
+
 ----
 
-### Example: Neural Network Classifier
+### Neural networks
 
-An obvious choice is a *feed-forward neural network*
-1. universal approximation
-2. easily scalable with stochastic optimization
-3. differentiable end-to-end wrt inputs $\mathbf{x}$
+*Multi-layer Perceptron (MLP)*
 
-Downside: Data-intensive
+- <span style="color:green">Upsides:</span> 
+  1. universal approximation
+  2. easily scalable with stochastic optimization
+  3. differentiable end-to-end wrt inputs $\mathbf{x}$
+- <span style="color:red">Downside:</span> Data-intensive
 
 Notes:
 An obvious candidate for parameterizing this classifier is a neural network,
@@ -584,13 +653,13 @@ considerably data-hungry and may not be suitable for sparse data regimes.
 
 ### Tree-based ensembles 
 
-Random forests (RF) and gradient-boosted trees (XGBoost)
+*Random forests (RF)* and *gradient-boosted trees (XGBoost)*
 
-1. deal well with discrete and conditional inputs, by design
-2. scale to high-dimensions
-3. scalable and highly-parallelizable
-
-Downside: Hard to optimize
+- <span style="color:green">Upsides:</span> 
+  1. deal well with discrete and conditional inputs, by design
+  2. scale to high-dimensions
+  3. scalable and highly-parallelizable
+- <span style="color:red">Downside:</span> Hard to optimize
 
 ---
 
@@ -601,7 +670,7 @@ Downside: Hard to optimize
   2. **Suggest candidate** $\mathbf{x}\_N \gets \operatorname{argmax}\_{\mathbf{x} \in \mathcal{X}} \pi\_{\boldsymbol{\theta}}(\mathbf{x})$
   3. **Evaluate** $y\_N \gets f(\mathbf{x}\_N)$
   4. **Update dataset** $\mathcal{D}\_N \gets \mathcal{D}\_{N-1} \cup \{ (\mathbf{x}\_N, y\_N) \}$
-  5. **Repeat 1.**
+  5. **Repeat** 1.
 
 Note:
 To summarize the algorithm, the so-called BO loop looks like this.
@@ -688,100 +757,96 @@ So, how well does this actually work?
 
 ---
 
-## Challenging synthetic test problems
+### HPOBench
 
-Note:
-First, we evaluate our method against TPE on a number of challenging synthetic
-test problems for optimization.
+> Train two-layer fully-connected network on various regression datasets.
 
-----
-
-## Branin (2D)
-
-![Branin](branin/regret_iterations_paper_1000x618.png "Branin") <!-- .element height="80%" width="80%" class="plain" -->
-
-Note:
-- Here are the results on the Branin function, a 2D problem.
-- The *y-axis* shows the *immediate regret*, defined as the *absolute error* 
-between the *global minimum* and the lowest function value observed so far. 
-- This is plotted against the *number of function evaluations* on the *x-axis*
-which gives us an indication of the methods' sample efficiency.
-- BORE is shown in *red*, while TPE is shown in *green*. 
-- As we can see, BORE competes favorably against TPE.
+- Klein, A., & Hutter, F. (2019). **Tabular benchmarks for joint architecture and hyperparameter optimization**. *arXiv preprint arXiv:1905.04970*.
 
 ----
 
-## Six-hump Camel (2D)
+#### HPOBench Naval
 
-![Six-hump camel](six_hump_camel/regret_iterations_paper_1000x618.png "Six-hump camel") <!-- .element height="80%" width="80%" class="plain" -->
-
-Note:
-The story is the same on the **six-hump camel** function, another 2D problem, 
-but one with 6 local minima. 
+![Naval](png_figures/hpobench/comparison_naval.png "naval") <!-- .element height="80%" width="80%" class="plain" -->
 
 ----
 
-## Michalewicz5D (5D)
+#### HPOBench Parkinsons
 
-![Michalewicz 5D](michalewicz_005d/regret_iterations_paper_1000x618.png "Michalewicz 5D") <!-- .element height="80%" width="80%" class="plain" -->
-
-Note:
-Here are the results on the 5D Michalewicz function.
+![Parkinsons](png_figures/hpobench/comparison_parkinsons.png "parkinsons") <!-- .element height="80%" width="80%" class="plain" -->
 
 ----
 
-## Hartmann6D
+#### HPOBench Protein
 
-![Hartmann 6D](hartmann6d/regret_iterations_paper_1000x618.png "Hartmann 6D") <!-- .element height="80%" width="80%" class="plain" -->
+![Protein](png_figures/hpobench/comparison_protein.png "protein") <!-- .element height="80%" width="80%" class="plain" -->
 
-Note:
-- And finally, on the 6D Hartmann function.
-- And indeed, across these problems, we see that BORE consistently outperforms TPE.
+----
+
+#### HPOBench Slice
+
+![Slice](png_figures/hpobench/comparison_slice.png "slice") <!-- .element height="80%" width="80%" class="plain" -->
 
 ---
 
-## Meta-surrogate benchmarks for AutoML
+### NASBench201
 
-- Klein, A., Dai, Z., Hutter, F., Lawrence, N., & Gonzalez, J. (2019). **Meta-surrogate Benchmarking for Hyperparameter Optimization.**
-In *Advances in Neural Information Processing Systems* (pp. 6270-6280).
+![NASBench201](https://xuanyidong.com/resources/paper-icon/ICLR-2020/space.png) <!-- .element height="50%" width="50%" class="plain" -->
 
-Note:
-We also consider the **meta-surrogate benchmarks for AutoML** by **Klein et al. 2019**
+- Dong, X., & Yang, Y. (2019, September). **NAS-Bench-201: Extending the Scope of Reproducible Neural Architecture Search.** In *International Conference on Learning Representations*.
 
-----
-
-## MetaSVM
-
-![MetaSVM](meta_surrogate/ranks_svm.png "MetaSVM") <!-- .element height="80%" width="80%" class="plain" -->
-
-Note:
-- And here we show the *average ranks* of each method against function evaluations.
-- In addition to TPE, we compare against BO methods with different types of 
-surrogate models, specifically, BO based on GPs, SMAC based on random forests, 
-and of course, TPE.
-- We also compare against SOTA evolutionary algorithms which are often 
-competitive against BO methods.
-- Across different problem classes, BORE (shown in blue) either outperforms all 
-other methods or achieves comparable performance
-- We see this for the SVM problem class
 
 ----
 
-## MetaFCNet
+#### NASBench201 CIFAR10
 
-![MetaFCNet](meta_surrogate/ranks_fcnet.png "MetaFCNet") <!-- .element height="80%" width="80%" class="plain" -->
-
-Note:
-- The FCNet problem class
+![CIFAR10](png_figures/nasbench201/comparison_cifar10-valid.png "CIFAR10") <!-- .element height="80%" width="80%" class="plain" -->
 
 ----
 
-## MetaXGBoost
+#### NASBench201 CIFAR100
 
-![MetaXGBoost](meta_surrogate/ranks_xgboost.png "MetaXGBoost") <!-- .element height="80%" width="80%" class="plain" -->
+![CIFAR100](png_figures/nasbench201/comparison_cifar100.png "CIFAR100") <!-- .element height="80%" width="80%" class="plain" -->
 
-Note:
-- And the XGBoost problem class
+----
+
+#### NASBench201 ImageNet16
+
+![CIFAR100](png_figures/nasbench201/comparison_ImageNet16-120.png "CIFAR100") <!-- .element height="80%" width="80%" class="plain" -->
+
+---
+
+### Racing Line Optimization
+
+- Jain, A., & Morari, M. (2020, December). **Computing the racing line using Bayesian optimization**. In *2020 59th IEEE Conference on Decision and Control (CDC)* (pp. 6192-6197). IEEE.
+
+----
+
+#### Racing (UC Berkeley)
+
+![UC Berkeley](png_figures/racing_a/comparison.png "UC Berkeley") <!-- .element height="80%" width="80%" class="plain" -->
+
+----
+
+#### Racing (ETH Zurich A)
+
+![ETH Zurich A](png_figures/racing_b/comparison.png "ETH Zurich A") <!-- .element height="80%" width="80%" class="plain" -->
+
+----
+
+#### Racing (ETH Zurich B)
+
+![ETH Zurich B](png_figures/racing_c/comparison.png "ETH Zurich B") <!-- .element height="80%" width="80%" class="plain" -->
+
+---
+
+### Additional Benchmarks
+
+----
+
+#### Robot Pushing
+
+![Robot Pushing](png_figures/robot_pushing/comparison.png "Robot Pushing") <!-- .element height="80%" width="80%" class="plain" -->
 
 ---
 
