@@ -1,5 +1,5 @@
 ---
-title: BORE | AutoML Seminar 2021
+title: BORE | Secondmind
 theme: serif
 highlightTheme: monokai
 revealOptions:
@@ -8,14 +8,14 @@ revealOptions:
     progress: true
 ---
 
-## Bayesian Optimization by Density-Ratio Estimation
+## Bayesian Optimization by Probabilistic Classification
 
 ***
 
 **Louis Tiao**, Aaron Klein, Matthias Seeger, Cédric Archambeau, Edwin Bonilla and Fabio Ramos
 
 Note:
-- Hi. In this talk, we describe an approach to *Bayesian Optimization* by *Density Ratio Estimation*.
+- Hi. In this talk, we will be discussing an approach to *Bayesian Optimization* by *Probabilistic Classification*.
 - My name is Louis Tiao, and this is a collaboration with Aaron Klein and my colleagues shown here.
 
 ---
@@ -55,7 +55,7 @@ Briefly summarized, BO has *two* components:
 - Then, BO works by proposing solutions according to an *acquisition function*, 
 a function which encodes the trade-off between *exploration* and *exploitation*.
   - usually the acquisition function is built on the properties of model's **posterior predictive** distribution *p(y|x, D)*.
-  - in our talk, we'll be focusing on the widely-popular **expected improvement**, 
+  - in our talk, we'll be focusing on the widely-used **expected improvement**, 
   or **EI**, acquisition function.
 
 ----
@@ -74,7 +74,7 @@ a function which encodes the trade-off between *exploration* and *exploitation*.
 Note:
 - First, let us define the improvement utility function, which quantifies the 
   non-negative amount by which *y* improves upon some threshold *tau*.
-- Conventionally, the threshold *tau* is set to the incumbent, or lowest function value observed so far
+- Conventionally, the threshold *tau* is set to the incumbent, or lowest function value observed so far.
 
 ----
 
@@ -88,7 +88,7 @@ Note:
 
 Note:
 - Finally, the *expected improvement* function, as the name suggests, is the *expected value* of the *improvement* 
-utility function (just defined), under the **posterior predictive** of the model
+utility function (just defined), under the **posterior predictive**
 - This explicitly reveals the dependency of the acquisition function on the posterior predictive
 
 ----
@@ -108,8 +108,8 @@ utility function (just defined), under the **posterior predictive** of the model
   and $\Psi, \psi$ denote the cdf and pdf of the normal distribution, resp.
 
 Note:
-- Importantly, if the predictive is *Gaussian*, we can obtain a nice closed-form expression 
-  - that is both easy to evaluate and to optimize
+- Note that if the predictive is *Gaussian*, we can obtain a nice closed-form expression 
+  - importantly, one that is that is both easy to evaluate and to optimize
 
 ----
 
@@ -124,7 +124,7 @@ Notes:
 - This underscores the compelling case for GPs and highlights why they're the go-to model of choice for Bayesian optimization  
   - they are expressive and flexible
   - provide well-calibrated predictive uncertainty estimates
-  - last but not least, their conjugacy property leads to a  Gaussian predictive distribution, which makes it easier to compute important quantities downstream such as the EI acquisition function
+  - last but not least, their conjugacy property leads to a Gaussian predictive distribution, which makes it easier to compute important quantities downstream such as the EI acquisition function
 
 ----
 
@@ -190,7 +190,7 @@ Note:
   - let's just take a step back and re-consider the problem from a slightly different angle.
 - First, let's recognize that, ultimately, we care about the surrogate model insofar as we can use it to compute the acquisition function
 - Naturally, we ought to ask: can we find an alternative formulation of the acquisition function
-  - importantly, one that doesn't rely directly on the posterior predictive of the model
+  - importantly, one that doesn't rely directly on the posterior predictive
 
 ---
 
@@ -235,7 +235,9 @@ with mixing proportion *gamma*.
 ![Relative Density Ratio](relative/densities_paper_1000x500.png "Relative Density Ratio") <!-- .element height="90%" width="90%" class="plain" -->
 
 Note:
-This is the example from the previous illustration, now also showing the *gamma* relative density ratio with *gamma* set to 0.25.
+- This is the example from the previous illustration, now also showing the *gamma* relative density ratio with *gamma* set to 0.25.
+- Notice that the ordinary ratio is more sharply peaked, while the relative ratio
+is broader and upper bounded (and we'll discuss what the upper bound is later in this talk)
 
 ----
 
@@ -252,9 +254,9 @@ h\_{\gamma}: u \mapsto \left(\gamma + u^{-1} (1 - \gamma)\right)^{-1}
 $$
 
 Note:
-Before moving on, it is worth noting that the relative density ratio *r_gamma* 
+Before moving on, it is worth noting that the relative ratio *r_gamma* 
 can be expressed as a *monotonically non-decreasing* function of the ordinary 
-density ratio *r_0*.
+ratio *r_0*.
 
 ---
 
@@ -266,7 +268,8 @@ density ratio *r_0*.
   $$
 
 Note:
-- We now discuss the conditions under which EI can be expressed as the relative density-ratio in the previous slides.
+- We now discuss the conditions under which EI can be expressed as the 
+relative ratio we just saw in the previous slides.
 - To do this, let's first specify *tau* as a function of *gamma*, specifically, with *tau* being the *gamma* th quantile of the observed *y* values. 
 
 ----
@@ -306,8 +309,8 @@ Notes:
   - if the corresponding output is less than *tau*, then it is distributed according to *l*,
   - otherwise, it is distributed according to *g*
 - In this illustration, I've selected *gamma = 1/3* which leads to *tau* taking on the value marked by the horizontal dashed line. 
-  - Every point below this line is in the smallest one-third of observed *y* values, and their density is shown in red in the pane above
-  - Likewise, every point above this line is in the largest two-thirds of observed *y* values, and their density is shown in blue in the pane above
+  - Every point below this line is in the smallest one-third of observed *y* values, and their density is shown as the red curve in the upper pane
+  - Likewise, every point above this line is in the largest two-thirds of observed *y* values, and their density is shown as the blue curve in the upper pane
 
 ----
 
@@ -340,7 +343,7 @@ $$
 Notes:
 - To give a high-level overview and provide some intuition on how this comes about, let's walk through a sketch proof
 - Rather than the usual approach of 
-  - specifying a model joint consisting of observed and latent variables, and then 
+  - specifying a model joint consisting of *observed* and *latent* variables, and then 
   - computing the predictive by marginalizing out the latent variables
 - Basically, we're instead specifying the marginal *p(y)* and the conditional *p(x | y)*
 - In this way, Bayes rule allows us to re-write the predictive in terms of these distributions
@@ -383,8 +386,8 @@ $$
 
 Notes:
 - It is straightforward to verify 
-  * that the numerator is proportional to *gamma*, and
-  * that the denominator is the *gamma* mixture density of *l* and *g*
+  * that the numerator is proportional to *l*, and
+  * that the denominator is exactly the *gamma* mixture density of *l* and *g*
 - Therefore, EI is proportional to the *gamma* relative density-ratio 
 
 ----
@@ -422,9 +425,9 @@ $$
 Note:
 - So now we're left with the problem of maximizing *r_gamma*.
 - To do this Bergstra et al. propose the TPE method, which makes two choices.
-- First, recall from earlier that r_gamma is a **monotonically non-decreasing** function
+- First, recall from earlier that *r_gamma* is a **monotonically non-decreasing** function
 of *r_0*. 
-- Therefore, they simply restrict their attention to maximizing *r_0* instead. 
+- Therefore, this justifies restricting our attention to maximizing *r_0* instead. 
 
 ----
 
@@ -445,7 +448,7 @@ consequences. In particular,
 positive *gamma*
 - It is easy to find examples of this. In particular, take a zero-mean, 
 unit-variance Normal distribution. By shifting the mean by 0.5 and taking the
-density ratios, we find that r_0 diverges to infinity while r_gamma remains
+density ratios, we find that *r_0* diverges to infinity while *r_gamma* remains
 upper bounded by 4, which is equivalent to the reciprocal of *gamma* for *gamma = 0.25*.
 
 ----
@@ -458,10 +461,10 @@ upper bounded by 4, which is equivalent to the reciprocal of *gamma* for *gamma 
   - take the ratio of the estimators
 
 Note:
-The next component of the TPE approach is to estimate r_0, which they do 
+The next component of the TPE approach is to estimate *r_0*, which they do 
 simply by 
 - individually estimating *l* and *g* using a tree-based variant of kernel 
-density estimation, and then
+density estimation (or KDE), and then
 - taking the ratio of these estimators
 
 ----
@@ -488,7 +491,7 @@ discuss next.
 
 Note:
 - Particularly, it turns out that estimating the individual densities is actually a more 
-cumbersome approach for a number of reasons. 
+cumbersome approach -- for a number of reasons. 
 - Firstly, it violates Vapnik's principle, paraphrased, suggests to us that when 
 solving a problem of interest, one should refrain from solving a 
 more general problem as an intermediate step.
@@ -514,7 +517,7 @@ densities,
   may be detrimental to estimating the density ratio as a whole.
   - This factor makes this approach unforgiving to any error in estimating the 
   individual densities, particularly in that of the denominator *g* which has 
-  an outsized influence on the resulting density-ratio
+  an outsized influence on the resulting density-ratio as a whole.
 
 ----
 
@@ -538,7 +541,7 @@ in this regard.
 
 Note:
 - Given all the pitfalls we just discussed, it stands to reason that we should be
-looking for ways to *directly estimate* the **relative density-ratio**.
+looking for ways to *directly estimate* the **relative** density-ratio.
 
 ---
 
@@ -588,9 +591,8 @@ Note:
 
 
 Note:
-- First, we let *pi* denote the *class-posterior probability*, that is, the 
-  *class-membership probability* of *x* belonging to the positive class,
-- and the classes are labeled such that
+- First, we let *pi* denote the *class-membership probability*, i.e. the probability of *x* belonging to the positive class
+- and the instances are labeled such that
   - *x* belongs to the positive class if output *y* is less than *tau*,
   - otherwise, it belongs to the negative class 
 
@@ -711,6 +713,10 @@ Notes:
 
 ## Choice of proportion $\gamma$
 
+Notes:
+- We can also briefly discuss various effects of parameter *gamma* and the 
+main considerations for choosing a value
+
 ----
 
 ### Effects of $\gamma$
@@ -720,12 +726,23 @@ Notes:
     first quartile ($\gamma = 1/4$) of observed $y$ values than the the
     third quartile ($\gamma = 3/4$).
 
+Notes:
+- intuitively, a smaller *gamma* encourages exploitation since there are fewer modes and sharper peaks in the response surface of the classifier
+- it's easy to see this:
+  - by definition, there are fewer inputs for which its output can be expected to improve over the first quartile of all observed outputs than, for example, the third quartile.
+
 ----
 
 ### Class balance rate $\gamma$
 
 - Also plays the role of the class balance rate 
-- Too low a value can be problematic ($\gamma \to 0 \Rightarrow$ extreme class imbalance) 
+- Too small a value can be problematic ($\gamma \to 0 \Rightarrow$ extreme class imbalance) 
+
+Notes:
+- In some situations, it can make sense to keep *gamma* as small as possible.
+- By definition, this *gamma* parameter also plays the role of the class balance rate.
+- So obviously, a value that is too small can create problems and instabilities associated with class imbalance.
+- In this work, we opted to keep it fixed, although it might make sense to start with perfect class balance by setting *gamma = 0.5*, and then to anneal *gamma* as optimization progresses.
 
 ---
 
@@ -771,10 +788,10 @@ classifier.compile(optimizer="adam", loss="binary_crossentropy")
 
 Note:
 In code, this is remarkably clean and simple:
-- We show a reference implementation for the BORE variant based on a feed-forward neural network
+- We're showing here a reference implementation for the BORE variant based on a feed-forward neural network
 - We implement a subclass of Sequential from Keras that adds one additional method
 - Everything else remains the same, as we can see here:
-  - We define the network as a sequence of Dense, or fully-connected layers as usual.
+  - We define the network as a sequence of Dense, or fully-connected layers, as usual.
   - Syntax should be familiar to anyone who has used a high-level neural network library
 
 ----
@@ -817,7 +834,18 @@ for i in range(num_iterations):
 </pre>
 
 Note:
-Now we can implement the core optimization loop
+Now we can go ahead and implement the core optimization loop as follows:
+- First we define an array of feature vectors and target labels.
+- We populate them with some initial designs.
+- We then define the classification problem: so we have the feature matrix *X* and also a vector of continuous targets *y*
+- With this vector of continuous targets, we compute the first quartile, as reflected by the setting of *q=0.25*
+- and then we call the binary predicate *np.less* on the vector of continuous targets *y* to construct the vector of binary labels *z*.
+- We then train the classifier, as one normally does, with some number of epochs and using some batch size.
+- And then we suggest the next candidate to evaluate using this additional method alluded to earlier: namely *argmax*, which uses the multi-started quasi-Newton method *L-BFGS* with 3 restarts.
+- Finally, we evaluate the blackbox function at this point, and then augment the dataset as usual
+- So this gives you a rough guide on how to implement different flavors of BORE based on different classifiers. 
+  - For example, you could take an SVM or ensembles of decision trees from libraries with this kind of interface, such as *scikit-learn* or *xgboost*.
+  - Then you just need to define a subclass, and implement this additional *argmax* method using whatever approach is most appropriate to the model at hand: for example, random search or evolutionary strategies for decision trees, as discussed earlier.
 
 ---
 
@@ -834,17 +862,35 @@ So, how well does this actually work?
 
 - Klein, A., & Hutter, F. (2019). **Tabular benchmarks for joint architecture and hyperparameter optimization**. *arXiv preprint arXiv:1905.04970*.
 
+Note:
+We considered a variety of benchmarks. Namely, HPOBench, which is the problem
+of training a two-layer fully-connected neural network on various regression datasets
+
 ----
 
 #### HPOBench Naval
 
 ![Naval](png_figures/hpobench/comparison_naval.png "naval") <!-- .element height="80%" width="80%" class="plain" -->
 
+Note:
+- The *black*, *turquoise* and *purple* curves represent the BORE variants, 
+in particular, BORE based on multi-layer perceptrons, random forests, and 
+gradient-boosted trees, respectively.
+- Some important baselines to note is GP-BO (using EI), shown in *green*, and 
+TPE, shown in *orange*.
+- We also include other relevant baselines, such as SMAC and regularized evolution. 
+- This benchmark considers 4 regression datasets.
+
 ----
 
 #### HPOBench Parkinsons
 
 ![Parkinsons](png_figures/hpobench/comparison_parkinsons.png "parkinsons") <!-- .element height="80%" width="80%" class="plain" -->
+
+Note:
+- We see that the BORE-RF and -XGB variants consistently outperform all other baselines, 
+and converges rapidly to the global minimum after 1-2 hundred iterations.
+- Notably, with the exception being BORE-MLP on the *parkinsons* dataset, all BORE variants outperform TPE, in many cases by a sizable margin.
 
 ----
 
@@ -866,6 +912,13 @@ So, how well does this actually work?
 
 - Dong, X., & Yang, Y. (2019, September). **NAS-Bench-201: Extending the Scope of Reproducible Neural Architecture Search.** In *International Conference on Learning Representations*.
 
+Note:
+- We also consider a neural architecture search, or NAS, benchmark which is concerned with the problem of designing a *neural cell*.
+- A cell is represented by a directed acyclic graph, or DAG, with 4 nodes
+- and the task is to assign an operation to each of the 6 possible arcs from a set of 5 possible operations.
+- In other words, this is a problem with 6 categorical inputs, with each input 
+belonging to five possible categories.
+- This benchmark considers 3 image classification datasets.
 
 ----
 
@@ -873,11 +926,17 @@ So, how well does this actually work?
 
 ![CIFAR10](png_figures/nasbench201/comparison_cifar10-valid.png "CIFAR10") <!-- .element height="80%" width="80%" class="plain" -->
 
+Note:
+- We find across all datasets that the BORE variants achieve the lowest final regret
+
 ----
 
 #### NASBench201 CIFAR100
 
 ![CIFAR100](png_figures/nasbench201/comparison_cifar100.png "CIFAR100") <!-- .element height="80%" width="80%" class="plain" -->
+
+Note:
+- We find that BORE-MLP maintains the lowest regret at *anytime*, i.e. at any iteration of the optimization procedure, followed by BORE-RF and then BORE-XGBoost.
 
 ----
 
@@ -891,11 +950,9 @@ So, how well does this actually work?
 
 - Jain, A., & Morari, M. (2020, December). **Computing the racing line using Bayesian optimization**. In *2020 59th IEEE Conference on Decision and Control (CDC)* (pp. 6192-6197). IEEE.
 
-----
-
-#### Racing (UC Berkeley)
-
-![UC Berkeley](png_figures/racing_a/comparison.png "UC Berkeley") <!-- .element height="80%" width="80%" class="plain" -->
+Note:
+- Finally, we consider the problem of computing the optimal racing line for a given track and some vehicle with known dynamics.
+- Specifically, we consider the dynamics of miniature scale remote-control cars traversing around similarly miniature tracks at UC Berkeley, and (various engineering departments at) ETH Zurich.
 
 ----
 
@@ -903,15 +960,35 @@ So, how well does this actually work?
 
 ![ETH Zurich A](png_figures/racing_b/comparison.png "ETH Zurich A") <!-- .element height="80%" width="80%" class="plain" -->
 
+Note:
+- We see that BORE consistently outperforms all baselines with the exception of GP-BO
+- This is to be expected, since the function is continuous, smooth and has 20 dimensions or less
+- Nonetheless, we see that the BORE-MLP variant performs as well as, or marginally better than, GP-BO on two tracks (ETH Zurich B and UC Berkeley) 
+
 ----
 
 #### Racing (ETH Zurich B)
 
 ![ETH Zurich B](png_figures/racing_c/comparison.png "ETH Zurich B") <!-- .element height="80%" width="80%" class="plain" -->
 
+Note:
+- On the ETH Zurich B track, we see that BORE-MLP consistently maintains a narrow lead.
+
+----
+
+#### Racing (UC Berkeley)
+
+![UC Berkeley](png_figures/racing_a/comparison.png "UC Berkeley") <!-- .element height="80%" width="80%" class="plain" -->
+
+Note:
+- On the UC Berkeley track, we see that BORE-MLP achieves the best lap times for the first 40 iterations or so, and in caught up to by GP-BO in the final 10 iterations. 
+
 ---
 
 ### Additional Benchmarks
+
+Note:
+Skip in this talk.
 
 ----
 
