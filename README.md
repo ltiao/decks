@@ -14,5 +14,7 @@ slide decks represented as [Markdown](https://daringfireball.net/projects/markdo
 
 1. [BORE | NeurIPS2020 Meta-learn Contributed Talk](bore-neurips2020-meta-learn/index.html)
    Online, Dec 2020
-1. [BORE | AutoML Seminar](bore-automl-seminar-2021/index.html)
+2. [BORE | AutoML Seminar](bore-automl-seminar-2021/index.html)
    Online, May 2021
+3. [BORE | Secondmind](bore-secondmind-2021/index.html)
+   Online, June 2021
