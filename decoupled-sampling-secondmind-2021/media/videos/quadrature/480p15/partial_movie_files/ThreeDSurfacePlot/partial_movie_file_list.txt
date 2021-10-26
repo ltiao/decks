@@ -1,0 +1,11 @@
+# This file is used internally by FFMPEG.
+file 'file:/home/louis.tiao/Repositories/animations/media/videos/quadrature/480p15/partial_movie_files/ThreeDSurfacePlot/126684412_1576677022_4030455957.mp4'
+file 'file:/home/louis.tiao/Repositories/animations/media/videos/quadrature/480p15/partial_movie_files/ThreeDSurfacePlot/1808939391_2614760706_4030455957.mp4'
+file 'file:/home/louis.tiao/Repositories/animations/media/videos/quadrature/480p15/partial_movie_files/ThreeDSurfacePlot/1808939391_2016069858_4096163405.mp4'
+file 'file:/home/louis.tiao/Repositories/animations/media/videos/quadrature/480p15/partial_movie_files/ThreeDSurfacePlot/1808939391_991171323_3700885942.mp4'
+file 'file:/home/louis.tiao/Repositories/animations/media/videos/quadrature/480p15/partial_movie_files/ThreeDSurfacePlot/3799546236_1237978125_2355252371.mp4'
+file 'file:/home/louis.tiao/Repositories/animations/media/videos/quadrature/480p15/partial_movie_files/ThreeDSurfacePlot/2183056957_583729495_947486355.mp4'
+file 'file:/home/louis.tiao/Repositories/animations/media/videos/quadrature/480p15/partial_movie_files/ThreeDSurfacePlot/2835341552_1652752223_935210819.mp4'
+file 'file:/home/louis.tiao/Repositories/animations/media/videos/quadrature/480p15/partial_movie_files/ThreeDSurfacePlot/1330743697_397608940_811828534.mp4'
+file 'file:/home/louis.tiao/Repositories/animations/media/videos/quadrature/480p15/partial_movie_files/ThreeDSurfacePlot/1700864229_57376586_643660125.mp4'
+file 'file:/home/louis.tiao/Repositories/animations/media/videos/quadrature/480p15/partial_movie_files/ThreeDSurfacePlot/525270307_1515588106_2170099204.mp4'
