@@ -83,7 +83,7 @@ Notes:
 - Sparse: $\mathbf{f}\_\* \vert \mathbf{u} = \mathbf{f}\_\* + \mathbf{K}\_{\ell m} \mathbf{K}\_{mm}^{-1} (\mathbf{u} - \mathbf{f}\_m)$
 - Exact: $\mathbf{f}\_\* \vert \mathbf{y} = \mathbf{f}\_\* + \mathbf{K}\_{\ell n} (\mathbf{K}\_{nn} + \sigma^2 \mathbf{I})^{-1} (\mathbf{y} - \mathbf{f} - \boldsymbol{\epsilon})$
 - *But is this any better?* Sampling $\mathbf{f}\_\* \sim \mathcal{N}(\mathbf{0}, \mathbf{K}\_{\ell \ell})$ costs $\mathcal{O}(\ell^3)$. 
-- Actually, it's *worse*! - jointly sampling $\mathbf{f}\_\*, \mathbf{f}\_m$ costs $\mathcal{O}((\ell + m)^3)$
+- Actually, it's *worse*! Jointly sampling $\mathbf{f}\_\*, \mathbf{f}\_m$ costs $\mathcal{O}((\ell + m)^3)$
 
 ----
 
@@ -95,6 +95,11 @@ $$
 $$
 - More *efficient* but less *accurate*
 ![Synthetic 1D](rff_comparisons_1d/data_notebook_2700x1200.png "Synthetic 1D")
+
+Notes:
+- Bayesian linear regression, where the latent variables of interest are the weights rather than function values themselves 
+- variance starvation - ability to extrapolate away from the data degrades as *n* increases
+
 
 ----
 
@@ -227,6 +232,22 @@ k(\mathbf{x}, \mathbf{x}') & =
   \end{bmatrix}
 \end{align}
 $$
+
+----
+
+#### A general recipe for cooking up Fourier features
+
+$$
+\begin{align}
+k(\mathbf{x}, \mathbf{x}') & =
+\mathbb{E}\_{p(\boldsymbol{\omega})}[\phi\_{\boldsymbol{\omega}}(\mathbf{x})^{\top} \phi\_{\boldsymbol{\omega}}(\mathbf{x}')] \newline & \stackrel{\star}{\approx} 
+\sum\_{m=1}^{M} \alpha\_m \phi\_{\boldsymbol{\omega}\_m}(\mathbf{x})^{\top} \phi\_{\boldsymbol{\omega}\_m}(\mathbf{x}'), \newline 
+  & \stackrel{\dagger}{=} \boldsymbol{\phi}(\mathbf{x})^{\top} \boldsymbol{\phi}(\mathbf{x}')
+\end{align}
+$$
+
+1. Find a way to approximate integral with $\star$
+2. Construct $\boldsymbol{\phi}: \mathbb{R}^D \to \mathbb{R}^M$ that satisfies $\dagger$
 
 ---
 
@@ -515,22 +536,6 @@ Note:
 
 ---
 
-### General Recipe
-
-$$
-\begin{align}
-k(\mathbf{x}, \mathbf{x}') & =
-\mathbb{E}\_{p(\boldsymbol{\omega})}[\phi\_{\boldsymbol{\omega}}(\mathbf{x})^{\top} \phi\_{\boldsymbol{\omega}}(\mathbf{x}')] \newline & \stackrel{\star}{\approx} 
-\sum\_{m=1}^{M} \alpha\_m \phi\_{\boldsymbol{\omega}\_m}(\mathbf{x})^{\top} \phi\_{\boldsymbol{\omega}\_m}(\mathbf{x}'), \newline 
-  & \stackrel{\dagger}{=} \boldsymbol{\phi}(\mathbf{x})^{\top} \boldsymbol{\phi}(\mathbf{x}')
-\end{align}
-$$
-
-1. Find a way to approximate integral with $\star$
-2. Construct $\boldsymbol{\phi}: \mathbb{R}^D \to \mathbb{R}^M$ that satisfies $\dagger$
-
-----
-
 ### Other methods
 
 - Fastfood [(Le et al. 2013)](#) 
@@ -560,6 +565,7 @@ $$
 
 1. Comparisons with other methods (ORF, QMCFF, Fastfood, etc.)
 2. Understand the downstream effects of QFF's poor behaviour (i.e. effects on the posterior)
+3. Find ways to ameliorate QFF's poor behaviours in the presence of small lengthscales
 
 ---
 
